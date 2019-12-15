@@ -1,0 +1,2892 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Place Search</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0/angular.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.4.0/angular-animate.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.22.0/moment.min.js"></script>
+  <script type="text/javascript" async src="https://platform.twitter.com/widgets.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCwuwIez8sQvDess1d0kRvDAWr5WXsMcKw&libraries=places"></script>
+
+<style type="text/css">
+    .biaoge {
+        position: relative;
+      border:2px solid #BDBDBD;
+      width:80%;
+      background-color: rgb(250,250,250);
+      left:10%;
+       }
+    .searchTitle {
+                  display: block;
+                  position:relative;
+                  text-align: center;
+                  font-weight: bold;
+                  font-size: 15px;  
+                  top:10px;
+                 }
+
+    .input{  
+       border-color:#FF0000;  
+       border-style:solid;  
+       }  
+
+   @media(min-width: 34em){
+    .card-columns{
+      -webkit-column-count:4;
+       column-count: 4;
+       -moz-column-count:4;
+      }
+    }
+    
+    .animate-show 
+  {
+    position:relative;
+    opacity:1;
+    background:white;
+    left:0;
+  }
+
+  .animate-show.ng-hide-add.ng-hide-add-active
+  {
+    -webkit-transition:all linear 0s;
+    transition:all linear 0s;
+  }
+  .animate-show.ng-hide-remove.ng-hide-remove-active 
+  {
+    -webkit-transition:all linear 0.5s;
+    transition:all linear 0.5s;
+  }
+
+  #dtinfo.animate-show.ng-hide 
+  {
+    left:-100%;
+  }
+
+  #zhuye.animate-show.ng-hide 
+  {
+    left:100%;
+  }
+  
+  #map {
+    height: 300px;
+    width: 100%;
+  }
+ 
+  .animate-show2 
+  {
+    opacity:1;
+    background:white;
+  }
+
+  .animate-show2.ng-hide-add.ng-hide-add-active
+  {
+    -webkit-transition:opacity linear 0s;
+    transition:opacity linear 0s;
+  }
+  
+  .animate-show2.ng-hide-remove.ng-hide-remove-active 
+  {
+    -webkit-transition:opacity linear 1s;
+    transition:opacity linear 1s;
+  }
+
+  .animate-show2.ng-hide 
+  {
+    opacity:0;
+  }
+
+  #panel {
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+
+      #panel select, #right-panel input {
+        font-size: 15px;
+      }
+
+      #panel select {
+        width: 100%;
+      }
+
+      #panel i {
+        font-size: 12px;
+      }
+      #panel {
+        height: 600px;
+        width: 100%;
+        overflow: auto;
+      }
+ @media print {
+        #right-panel {
+          float: none;
+          width: auto;
+        }
+      }
+</style>
+
+</head>
+<body ng-app="App">
+
+<script type="text/javascript">
+//to get the local address
+  Ipadd='';
+  ipstatus='';
+  address1='';
+  jsontable='';
+  jsontableone='';
+  jsontabletwo='';
+  dtplacename='';
+  dtaddress='';
+  yelp_city='';
+  yelp_country='';
+  ypreviewlist='';
+  website='';
+  //var localarray=new Array();
+  scjilu=''; //记录detail页面的icon,name,add,placeid
+  pageno=1;
+  fvpagen=1;
+  html_text='';
+  dtpageplaceid='';
+  rfflag=1;
+  html_preone='';
+  html_pretwo='';
+  //html_fvpreone='';
+  /////////////////////全局变量区域结束
+if (typeof(Storage) == "undefined") {
+    alert('Sorry, your browser does not support Web Storage.');
+}else{
+    if(localStorage.getItem("wodelocalarray")==null){
+    var localarray=new Array();
+    var cunvalue=JSON.stringify(localarray);
+    localStorage.setItem("wodelocalarray", cunvalue);
+    }else{
+    localarray=JSON.parse(localStorage.getItem("wodelocalarray"));
+    //console.log(localarray);
+    }//elseif ==null
+}//else undefined
+
+function herelocation(){
+  $.ajax({  
+            url: 'http://ip-api.com/json', 
+            dataType: 'json',  
+            type: "GET",  
+            success: function (result) {
+                  herelat=result['lat'];
+                  herelon=result['lon'];
+                  Ipadd=result;
+                  //console.log(Ipadd);
+                  ipstatus=Ipadd['status'];
+                  document.getElementById("herela").value=herelat;
+                  document.getElementById("herelo").value=herelon;
+                  },
+            error : function() {
+                    Ipadd="";
+                    ipstatus='';
+                    return;
+                }
+        });
+}//function
+
+herelocation();
+  
+</script>
+
+
+<div class="biaoge" >
+<div class="container">
+    
+    <h class="searchTitle">Travel and Entertainment Search</h>
+      <div style="font-size: 7px">&nbsp;</div>
+    <form id="myform" class="form-group" >
+    <div class="form-group row">
+      <label for="Kong" class="col-sm-2 col-form-label"></label>
+      <label for="Keyword" class="col-sm-2 col-form-label" style="font-size:13px"><span>Keyword</span><span style="color:red">*</span></label>
+        <div class='col-sm-6' >
+            <input type="text"  name="key_word" class="form-control form-control-sm" id="keywordfield" onfocusout="keywordval()" onkeyup="keywordval()">
+            <input type="text"  name="todo" class="form-control form-control-sm" id="todoin"  value="placetable" style="display: none">
+            <div id="enterkey" style="font-size:13px;">
+            
+              <font color="red">Please enter a keyword.</font>
+            
+              </div>
+        </div>
+    </div><!--formgrouprow-->
+ 
+
+    <div>
+      <div class="form-group row" >
+        <label for="Kong" class="col-sm-2 col-form-label"></label>
+        <label class="col-sm-2" for="Category" style="font-size:13px">Category</label>
+        <div class="col-sm-4">
+        <select class="custom-select form-control form-control-sm" id="Category" NAME="category">
+          <option selected>Default</option>
+          <option value="Airport">Airport</option>
+          <option value="Amusement Park">Amusement Park</option>
+          <option value="Aquarium">Aquarium</option>
+          <option value="Art Gallery">Art Gallery</option>
+          <option value="Bakery">Bakery</option>
+          <option value="Bar">Bar</option>
+          <option value="Beauty Salon">Beauty Salon</option>
+          <option value="Bowling Alley">Bowling Alley</option>
+          <option value="Bus Station">Bus Station</option>
+          <option value="Cafe">Cafe</option>
+          <option value="Campground">Campground</option>
+          <option value="Car Rental">Car Rental</option>
+          <option value="Casino">Casino</option>
+          <option value="Lodging">Lodging</option>
+          <option value="Movie Theater">Movie Theater</option>
+          <option value="Museum">Museum</option>
+          <option value="Night Club">Night Club</option>
+          <option value="Park">Park</option>
+          <option value="Parking">Parking</option>
+          <option value="Restaurant">Restaurant</option>
+          <option value="Shopping Mall">Shopping Mall</option>
+          <option value="Stadium">Stadium</option>
+          <option value="Subway Station">Subway Station</option>
+          <option value="Taxi Stand">Taxi Stand</option>
+          <option value="Train Station">Train Station</option>
+          <option value="Transit Station">Transit Station</option>
+          <option value="Travel Agency">Travel Agency</option>
+          <option value="Zoo">Zoo</option>
+        </select>
+      </div>
+      </div>
+
+
+    <div class="form-group row">
+      <label for="Kong" class="col-sm-2 col-form-label"></label>
+      <label for="Distance" class="col-sm-2 col-form-label" style="font-size:13px">Distance(miles)</label>
+      <div class="col-sm-4">
+          <input type="text" class="form-control form-control-sm" id="Distancefield" placeholder=10 NAME="distance">
+      </div>
+    </div>
+    
+    <div class="row">
+      <label for="Kong" class="col-sm-2 col-form-label"></label>
+        <legend class="col-form-label col-sm-2 pt-0" style="font-size:13px"><span>From</span><span style="color: red">*</span></legend>
+        <div class="col-sm-8">
+          <div class="form-check">
+              <input class="form-check-input" type="radio" name="Locationchoice" id="Loch" value="option1" checked onclick="disablelocation(this)">
+              <label class="form-check-label" for="Locationchoice1" style="font-size:13px" >Current location</label>
+               <INPUT TYPE="hidden" Name="herela" VALUE="" id="herela">
+           <INPUT TYPE="hidden" Name="herelo" VALUE="" id="herelo" >
+          </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="Locationchoice" id="Loch" value="option2"  onclick="processability(this)">
+          <label class="form-check-label" for="Locationchoice2" style="font-size:13px">Other. Please specify:</label>
+        </div>
+        <div class="col-sm-9">
+          <input type="text" NAME="locationname" class="form-control form-control-sm" id="locationname" placeholder="Enter a location" disabled="" onfocusout="locationval()" onkeyup="locationval()">
+          <div id="enterlocation" style="font-size:13px;">
+            
+              <font color="red">Please enter a location.</font>
+            
+              </div>
+        </div>
+        </div><!--colsm8-->
+    </div><!--row-->
+    <div style="font-size: 4px">&nbsp;</div>  
+    <div class="form-group row">
+      <div class="col-sm-8">
+        <label for="Kong" class="col-sm-3 col-form-label"></label>
+        <button type="button" class="btn btn-primary" id="searchbutton" onclick="tijiao();showbar();anlist();" disabled=true><i class="fa fa-search"></i>&nbsp;<span style="font-size:13px">Search</span></button> 
+        <button type="button" class="btn btn-outline-secondary" id="clearall" style="font-size:13px" onclick="clearsearch()">Clear</button>
+        <div style="font-size: 4px">&nbsp;</div>
+      </div>
+    </div><!--fromgrouprow-->
+    
+    </div>
+    </form>
+  </div><!--container-->
+</div><!--biaoge-->
+
+<script type="text/javascript"> 
+function initial()
+{
+document.getElementById('enterkey').style.display='none';
+document.getElementById('enterlocation').style.display='none';
+}
+
+initial();
+</script>
+
+<script type="text/javascript">
+function clearsearch(){
+document.getElementById("myform").reset();
+document.getElementById("locationname").disabled=true;
+document.getElementById('keywordfield').style.border="";
+document.getElementById("enterkey").style.display='none';
+document.getElementById('locationname').style.border="";
+document.getElementById("enterlocation").style.display='none';
+document.getElementById("searchbutton").disabled=true;
+document.getElementById('pills-Results-tab').click();
+document.getElementById("resulttable").innerHTML='';
+document.getElementById('Infotablebanma').innerHTML='';
+document.getElementById('Photos').innerHTML='';
+document.getElementById('Maptabtab').innerHTML='';
+document.getElementById('googlereview').innerHTML='';
+document.getElementById('yelpreview').innerHTML='';
+document.getElementById('Info-tab').click();
+document.getElementById("processbar").style.display='none';
+rfflag=1;
+jsontable='';
+jsontableone='';
+jsontabletwo='';
+dtplacename='';
+dtaddress='';
+address1='';
+yelp_city='';
+yelp_country='';
+ ypreviewlist='';
+ website='';
+ scjilu='';
+ pageno=1;
+ fvpagen=1;/////////////////////////////////////////////////////
+ html_text='';
+ dtpageplaceid='';
+ html_preone='';
+ html_pretwo='';
+document.getElementById('jialist').click();
+document.getElementById('gybutton').innerHTML='Google reviews';
+document.getElementById('dropdownmenulist').innerHTML='Default Order';
+document.getElementById('dtnamefield').innerHTML='';
+document.getElementById('googlervbutton').click();
+  }
+
+function disablelocation(form) {
+  document.getElementById("locationname").disabled=true;
+  document.getElementById('locationname').style.border="";
+  document.getElementById('locationname').value="";
+  document.getElementById("enterlocation").style.display='none';
+  if(document.getElementById('keywordfield').value==""){
+    document.getElementById("searchbutton").disabled=true; 
+}
+
+}
+
+function processability(form) {
+  document.getElementById("locationname").disabled=false; 
+  document.getElementById("searchbutton").disabled=true; 
+}
+
+
+function keywordval(){  
+      var value = document.getElementById('keywordfield').value;
+      value = value.replace(/\s+/g,"");
+  if(value.length== 0){
+  document.getElementById("enterkey").style.display='';
+  document.getElementById('keywordfield').style.border="1px solid red";
+  document.getElementById("searchbutton").disabled=true;
+  }
+  else{
+    document.getElementById('keywordfield').style.border="";
+    document.getElementById("enterkey").style.display='none';
+    if(ipstatus=="success") {                              /////////////////////////开
+        document.getElementById("searchbutton").disabled=false;
+      }
+  }
+}
+
+function locationval(){ 
+
+      var value = document.getElementById('locationname').value;
+      value = value.replace(/\s+/g,"");
+  if(value.length== 0){
+  document.getElementById("enterlocation").style.display='';
+  document.getElementById('locationname').style.border="1px solid red";
+  document.getElementById("searchbutton").disabled=true;
+  }
+  else{
+    document.getElementById('locationname').style.border="";
+    document.getElementById("enterlocation").style.display='none';
+    var valk=document.getElementById('enterkey').style.display;
+    if (valk=='none'){
+    document.getElementById("searchbutton").disabled=false;
+    }
+  }
+}
+
+
+
+  function huantu(){  
+    document.getElementById('xiaorenren').innerHTML="<a href=\"javascript:void(0)\" onclick='dituqie();huanrenren()'><img src=\"https://cdn.pixabay.com/photo/2016/11/04/14/13/google-maps-1797882_960_720.png\" height=50px width=50px;  style='border: solid 1px #CEECF5' ></a>";
+  }//function
+
+  function huanrenren(){    
+    document.getElementById('xiaorenren').innerHTML="<a href=\"javascript:void(0)\" onclick='initialize(placelat,placelng);huantu()'><img src=\"https://cdn1.vectorstock.com/i/1000x1000/12/90/simple-icon-360-degrees-360-degrees-view-vector-11261290.jpg\" height=50px width=50px;  style='border: solid 1px #CEECF5' ></a>";
+  }
+
+</script>
+
+
+<script type="text/javascript">  
+function fvnext(){
+  fvpagen=fvpagen+1;
+  printfav(localarray);
+}//function fvpreviousone  
+
+function fvpre(){
+  fvpagen=fvpagen-1;
+  printfav(localarray);
+}//function fvpre             
+  
+function printfav(array1){
+ if(fvpagen==1){
+  if(array1.length==0){
+    html_nof='';
+    html_nof +="<div class='container'>";
+    html_nof +="<div class=\"alert alert-warning\" role=\"alert\">";
+    html_nof+="No records.";
+    html_nof +="</div>";
+    html_nof +="</div>";//container
+    $("#favopage").html(html_nof);
+  }else{
+    var arraylist = array1.concat();
+    var tablelength=Math.min(arraylist.length,20);
+    arraylist=arraylist.slice(0,tablelength);
+    for(var i=0;i<tablelength;i++){
+        arraylist[i]=localStorage.getItem(arraylist[i]);
+        arraylist[i]=JSON.parse(arraylist[i]);
+    }//for
+ 
+    var html_text='';
+     
+      html_text += "<div class=\"d-flex justify-content-end\">"
+      html_text += "<button type=\"button\" class=\"btn btn-outline-secondary\" id='fvdtbutton' onclick='andetail();detailinfo(dtpageplaceid,scjilu)' disabled>Details&nbsp;<i class=\"fa fa-angle-right\"></i></button></div>";
+      html_text +="<div class='table-responsive-md'>";
+      html_text += "<table class=\"table table-hover\">";
+      html_text += "<thead>";
+      html_text += "<tr>";
+      html_text += "<th scope=\"col\">#</th>";
+      html_text += "<th scope=\"col\">Category</th>";
+      html_text += "<th scope=\"col\">Name</th>";
+      html_text += "<th scope=\"col\">Address</th>";
+      html_text += "<th scope=\"col\">Favorite</th>";
+      html_text += "<th scope=\"col\">Details</th>";
+      html_text += "</tr>";
+      html_text += "</thead>";
+      
+      html_text += "<tbody>";
+    for(var i=0;i<tablelength;i++){
+      var fticon=arraylist[i]['icon'];
+      var ftname=arraylist[i]['name'];
+      ftname=unescape(ftname);
+      var ftadd=arraylist[i]['vicinity'];
+      ftadd=unescape(ftadd);
+      //console.log(ftadd);
+      var ftplaceid=arraylist[i]['place_id'];
+     
+      var hangno='fthang'+i;//////////////////////////////
+      html_text += "<tr id='"+hangno+"'>";/////////////////////
+      
+      html_text += "<th scope=\"row\">"+(i+1)+"</th>";
+      html_text += "<td><img src=\""+fticon+"\"height=30px width=50px;></td>";
+      html_text += "<td>"+ftname+"</td>";
+      html_text += "<td>"+ftadd+"</td>";
+      var ftname1=escape(ftname);  
+      var ftadd1=escape(ftadd);
+      var yitiao={'icon':fticon,'name':ftname1,'vicinity':ftadd1,'place_id':ftplaceid};
+
+      yitiao=JSON.stringify(yitiao);
+      //console.log(yitiao);
+      html_text += "<td><button type=\"button\"  onclick='shanchufv("+yitiao+")' class=\"btn btn-outline-secondary\"><i class=\"fa fa-trash\"></i></button></td>";
+      html_text += "<td><button type=\"button\" class=\"btn btn-outline-secondary\" value="+ftplaceid+" onclick='detailinfo(value,"+yitiao+");anjiantou();kaifvdtbutton();'><i class=\"fa fa-angle-right\"></i></button></td>";
+      html_text += "</tr>";  
+     }//for
+
+      html_text+="</tbody>"
+      html_text+="</table>";
+      html_text+="</div>";//responsivetable div
+      html_text+="<div id=\"nextbutton\" align=\"center\">";
+      if(array1.length>20){
+      html_text+="<button type='button' class='btn btn-outline-secondary' onclick='fvnext();'><span style='font-size:13px'><strong>Next</strong></span></button>";///////////////////////////////////////////////////////////////////////////////////
+      }//if arraylist.length>20
+      html_text+="</div>";//nextbutton div
+  
+      $("#favopage").html(html_text);
+      //console.log(scjilu);
+      for(var k=0;k<tablelength;k++){
+        var ftplaceid=arraylist[k]['place_id'];
+      if(ftplaceid==dtpageplaceid){
+      document.getElementById('fthang'+k).style.backgroundColor='#F3E2A9'; 
+          }//if placeid
+      }//for k    
+      if(scjilu!=''){
+         kaifvdtbutton();
+      }//if scjl
+  }//else array length!=0
+ }else if(fvpagen==2){
+   var arraylist = array1.concat();
+    var tablelength=Math.min(arraylist.length,40);
+    arraylist=arraylist.slice(20,tablelength);
+    tablelength=tablelength-20;
+    if(tablelength==0){
+     fvpagen=1;
+     printfav(localarray);
+    }else{//if tablelength==0
+      for(var i=0;i<tablelength;i++){
+          arraylist[i]=localStorage.getItem(arraylist[i]);
+          arraylist[i]=JSON.parse(arraylist[i]);
+      }//for
+      ///////////////
+      var html_text='';
+     
+      html_text += "<div class=\"d-flex justify-content-end\">"
+      html_text += "<button type=\"button\" class=\"btn btn-outline-secondary\" id='fvdtbutton' onclick='andetail();detailinfo(dtpageplaceid,scjilu)' disabled>Details&nbsp;<i class=\"fa fa-angle-right\"></i></button></div>";
+      html_text +="<div class='table-responsive-md'>";
+      html_text += "<table class=\"table table-hover\">";
+      html_text += "<thead>";
+      html_text += "<tr>";
+      html_text += "<th scope=\"col\">#</th>";
+      html_text += "<th scope=\"col\">Category</th>";
+      html_text += "<th scope=\"col\">Name</th>";
+      html_text += "<th scope=\"col\">Address</th>";
+      html_text += "<th scope=\"col\">Favorite</th>";
+      html_text += "<th scope=\"col\">Details</th>";
+      html_text += "</tr>";
+      html_text += "</thead>";
+      
+      html_text += "<tbody>";
+    for(var i=0;i<tablelength;i++){
+      var fticon=arraylist[i]['icon'];
+      var ftname=arraylist[i]['name'];
+      ftname=unescape(ftname);
+      var ftadd=arraylist[i]['vicinity'];
+      ftadd=unescape(ftadd);
+      var ftplaceid=arraylist[i]['place_id'];
+     
+      var hangno='fthang'+i;//////////////////////////////
+      html_text += "<tr id='"+hangno+"'>";/////////////////////
+      
+      html_text += "<th scope=\"row\">"+(i+1)+"</th>";
+      html_text += "<td><img src=\""+fticon+"\"height=30px width=50px;></td>";
+      html_text += "<td>"+ftname+"</td>";
+      html_text += "<td>"+ftadd+"</td>";
+      var ftname1=escape(ftname);  
+      var ftadd1=escape(ftadd);
+      var yitiao={'icon':fticon,'name':ftname1,'vicinity':ftadd1,'place_id':ftplaceid};
+
+      yitiao=JSON.stringify(yitiao);
+      //console.log(yitiao);
+      html_text += "<td><button type=\"button\"  onclick='shanchufv("+yitiao+")' class=\"btn btn-outline-secondary\"><i class=\"fa fa-trash\"></i></button></td>";
+      html_text += "<td><button type=\"button\" class=\"btn btn-outline-secondary\" value="+ftplaceid+" onclick='detailinfo(value,"+yitiao+");anjiantou();kaifvdtbutton();'><i class=\"fa fa-angle-right\"></i></button></td>";
+      html_text += "</tr>";  
+     }//for
+
+      html_text+="</tbody>"
+      html_text+="</table>";
+      html_text+="</div>";//responsivetable div
+      
+      if(array1.length>20 && array1.length<=40){
+      html_text+="<div align=\"center\">";
+      html_text+="<button type='button' class='btn btn-outline-secondary' onclick='fvpre();'><span style='font-size:13px'><strong>Previous</strong></span></button>";///////////////////////////////////////////////////////////////////////////////////
+      html_text+="</div>";//nextbutton div
+      }else if(array1.length>40){
+       html_text+="<div  align=\"center\">";
+      html_text+="<button type='button' class='btn btn-outline-secondary' onclick='fvpre();'><span style='font-size:13px'><strong>Previous</strong></span></button>";
+      html_text+="&nbsp;&nbsp;&nbsp;";
+      html_text+="<button type='button' class='btn btn-outline-secondary' onclick='fvnext()'><span style='font-size:13px'><strong>Next</strong></span></button>";
+      html_text+="</div>";
+      }//if arraylist.length40      
+  
+      $("#favopage").html(html_text);
+      //console.log(scjilu);
+      for(var k=0;k<tablelength;k++){
+        var ftplaceid=arraylist[k]['place_id'];
+      if(ftplaceid==dtpageplaceid){
+      document.getElementById('fthang'+k).style.backgroundColor='#F3E2A9'; 
+          }//if placeid
+      }//for k    
+      if(scjilu!=''){
+         kaifvdtbutton();
+      }//if scjl
+//////////////////////////
+    }//else if tablelength==0
+  }else if(fvpagen=3){
+    var arraylist = array1.concat();   
+    arraylist=arraylist.slice(40,arraylist.length);
+    tablelength=arraylist.length;
+    if(tablelength==0){
+     fvpagen=2;
+     printfav(localarray);
+    }else{//if tablelength==0
+      for(var i=0;i<tablelength;i++){
+          arraylist[i]=localStorage.getItem(arraylist[i]);
+          arraylist[i]=JSON.parse(arraylist[i]);
+      }//for
+      ////////////////////
+     var html_text='';
+     
+      html_text += "<div class=\"d-flex justify-content-end\">"
+      html_text += "<button type=\"button\" class=\"btn btn-outline-secondary\" id='fvdtbutton' onclick='andetail();detailinfo(dtpageplaceid,scjilu)' disabled>Details&nbsp;<i class=\"fa fa-angle-right\"></i></button></div>";
+      html_text +="<div class='table-responsive-md'>";
+      html_text += "<table class=\"table table-hover\">";
+      html_text += "<thead>";
+      html_text += "<tr>";
+      html_text += "<th scope=\"col\">#</th>";
+      html_text += "<th scope=\"col\">Category</th>";
+      html_text += "<th scope=\"col\">Name</th>";
+      html_text += "<th scope=\"col\">Address</th>";
+      html_text += "<th scope=\"col\">Favorite</th>";
+      html_text += "<th scope=\"col\">Details</th>";
+      html_text += "</tr>";
+      html_text += "</thead>";
+      
+      html_text += "<tbody>";
+    for(var i=0;i<tablelength;i++){
+      var fticon=arraylist[i]['icon'];
+      var ftname=arraylist[i]['name'];
+      ftname=unescape(ftname);
+      var ftadd=arraylist[i]['vicinity'];
+      ftadd=unescape(ftadd);
+      var ftplaceid=arraylist[i]['place_id'];
+     
+      var hangno='fthang'+i;//////////////////////////////
+      html_text += "<tr id='"+hangno+"'>";/////////////////////
+      
+      html_text += "<th scope=\"row\">"+(i+1)+"</th>";
+      html_text += "<td><img src=\""+fticon+"\"height=30px width=50px;></td>";
+      html_text += "<td>"+ftname+"</td>";
+      html_text += "<td>"+ftadd+"</td>";
+      var ftname1=escape(ftname);  
+      var ftadd1=escape(ftadd);
+      var yitiao={'icon':fticon,'name':ftname1,'vicinity':ftadd1,'place_id':ftplaceid};
+
+      yitiao=JSON.stringify(yitiao);
+      //console.log(yitiao);
+      html_text += "<td><button type=\"button\"  onclick='shanchufv("+yitiao+")' class=\"btn btn-outline-secondary\"><i class=\"fa fa-trash\"></i></button></td>";
+      html_text += "<td><button type=\"button\" class=\"btn btn-outline-secondary\" value="+ftplaceid+" onclick='detailinfo(value,"+yitiao+");anjiantou();kaifvdtbutton();'><i class=\"fa fa-angle-right\"></i></button></td>";
+      html_text += "</tr>";  
+     }//for
+
+      html_text+="</tbody>"
+      html_text+="</table>";
+      html_text+="</div>";//responsivetable div
+      
+     
+      html_text+="<div align=\"center\">";
+      html_text+="<button type='button' class='btn btn-outline-secondary' onclick='fvpre();'><span style='font-size:13px'><strong>Previous</strong></span></button>";///////////////////////////////////////////////////////////////////////////////////
+      html_text+="</div>";//nextbutton div
+         
+  
+      $("#favopage").html(html_text);
+      //console.log(scjilu);
+      for(var k=0;k<tablelength;k++){
+        var ftplaceid=arraylist[k]['place_id'];
+      if(ftplaceid==dtpageplaceid){
+      document.getElementById('fthang'+k).style.backgroundColor='#F3E2A9'; 
+          }//if placeid
+      }//for k    
+      if(scjilu!=''){
+         kaifvdtbutton();
+      }//if scjl
+//////////////////////////
+    }//else if tablelength==0
+      ///////////////////////////
+  }//else if fvpagen
+}//function printfav 
+
+function shanchufv(jilu){
+    var keyzhi=jilu.place_id;
+    jilu=JSON.stringify(jilu);
+    localStorage.removeItem(keyzhi);
+   localarray = localarray.filter(function (item) {  
+      return item!=keyzhi;
+   });
+   var cunvalue=JSON.stringify(localarray);
+    localStorage.setItem("wodelocalarray", cunvalue);
+   //console.log(localarray);
+    printfav(localarray);
+}//function shanchufv
+
+
+
+function bianse(i,jilu){
+  //console.log(jilu);
+   var keyzhi=jilu.place_id;
+  jilu=JSON.stringify(jilu);
+   var xingid='shouc'+i;  
+  if(document.getElementById(xingid).style.color=='black'){
+  document.getElementById(xingid).setAttribute("class", "fa fa-star"); 
+  document.getElementById(xingid).style.color='#FFBF00'; 
+  localStorage.setItem(keyzhi,jilu);
+  localarray.push(keyzhi);
+  var cunvalue=JSON.stringify(localarray);
+    localStorage.setItem("wodelocalarray", cunvalue);
+  //console.log(localarray);
+  //printfav(localarray);
+  }else{
+  document.getElementById(xingid).setAttribute("class", "fa fa-star-o"); 
+  document.getElementById(xingid).style.color='black'; 
+   localStorage.removeItem(keyzhi);
+   localarray = localarray.filter(function (item) {  
+      return item!=keyzhi;
+   });
+   var cunvalue=JSON.stringify(localarray);
+    localStorage.setItem("wodelocalarray", cunvalue);
+    //printfav(localarray);
+   //console.log(localarray);
+  }//else if
+}//function bianse
+
+
+
+
+
+function tijiao() {  
+document.getElementById('pills-Results-tab').click();
+document.getElementById("resulttable").innerHTML='';
+document.getElementById('Infotablebanma').innerHTML='';
+document.getElementById('Photos').innerHTML='';
+document.getElementById('Maptabtab').innerHTML='';
+document.getElementById('googlereview').innerHTML='';
+document.getElementById('yelpreview').innerHTML='';
+document.getElementById('Info-tab').click();
+document.getElementById('gybutton').innerHTML='Google reviews';
+document.getElementById('dropdownmenulist').innerHTML='Default Order';
+document.getElementById('dtnamefield').innerHTML='';
+document.getElementById('googlervbutton').click();
+pageno=1;
+fvpagen=1;
+scjilu='';
+dtpageplaceid='';
+html_text="";
+        $.ajax({  
+            url: 'http://christine.us-west-1.elasticbeanstalk.com:8000/',  
+            //url: 'http://localhost:8000/', 
+            dataType: 'json',  
+            type: "GET",  
+            data: $('#myform').serialize(), 
+            success: function (result) {
+                    document.getElementById('processbar').style.display='none';
+                    //console.log(result);
+                     
+                     html_null="";
+                     html_err="";
+                     jsontable=result['results']; 
+                    var restatus=result['status'];
+                    html_text +="<div class='container'>";
+                    html_text += "<div class=\"d-flex justify-content-end\">"
+                    html_text += "<button type=\"button\" class=\"btn btn-outline-secondary\" id='detailbutton' onclick='andetail();detailinfo(dtpageplaceid,scjilu)' disabled>Details&nbsp;<i class=\"fa fa-angle-right\"></i></button></div>";
+                    html_text +="<div class='table-responsive-md'>";
+                    html_text += "<table class=\"table table-hover\">";
+                    html_text += "<thead>";
+                    html_text += "<tr>";
+                    html_text += "<th scope=\"col\">#</th>";
+                    html_text += "<th scope=\"col\">Category</th>";
+                    html_text += "<th scope=\"col\">Name</th>";
+                    html_text += "<th scope=\"col\">Address</th>";
+                    html_text += "<th scope=\"col\">Favorite</th>";
+                    html_text += "<th scope=\"col\">Details</th>";
+                    html_text += "</tr>";
+                    html_text += "</thead>";
+
+                    if(restatus=="OK")
+                    {   
+                        var tablelength=Math.min(jsontable.length,20);
+                        html_text += "<tbody>";
+                        for (var i = 0; i < tablelength; i++)
+                        {
+                           jicon=jsontable[i]['icon'];
+                           jname=jsontable[i]['name'];
+                           jv=jsontable[i]['vicinity'];
+                          placeid=jsontable[i]['place_id'];
+                          var shouc='shouc'+i; 
+                          var hangno='hang'+i;//////////////////////////////
+                          html_text += "<tr id='"+hangno+"'>";/////////////////////////////////////////////////////////////////////////////////////////
+                          html_text += "<th scope=\"row\">"+(i+1)+"</th>";
+                          html_text += "<td><img src=\""+jicon+"\"height=30px width=50px;></td>";
+                          html_text += "<td>"+jname+"</td>";
+                          html_text += "<td>"+jv+"</td>";
+                          var jname1=escape(jname);
+                          var jv1=escape(jv);
+                         // console.log(jv1);
+                          var yitiao={"icon":jicon,"name":jname1,"vicinity":jv1,"place_id":placeid};
+                          
+                          yitiao=JSON.stringify(yitiao);
+                          //console.log(yitiao);
+                          html_text += "<td><button  onclick='bianse("+i+","+yitiao+");' type=\"button\" class=\"btn btn-outline-secondary\"><i class=\"fa fa-star-o\" id='"+shouc+"' style='color:black'></i></button></td>";
+                          html_text += "<td><button type=\"button\" class=\"btn btn-outline-secondary\" value="+placeid+" onclick='detailinfo(value,"+yitiao+");anjiantou();kaidtbutton();'><i class=\"fa fa-angle-right\"></i></button></td>";
+
+                          html_text += "</tr>";  
+                         }//for
+                          html_text+="</tbody>"
+                          html_text+="</table>";
+                          html_text+="</div>";//responsivetable div
+                          html_text+="<div id=\"nextbutton\" align=\"center\">";
+                          if(result.hasOwnProperty('next_page_token')){
+                          nextpageone=result['next_page_token'];
+                          html_text+="<button type='button' class='btn btn-outline-secondary' onclick='nextpg()'><span style='font-size:13px'><strong>Next</strong></span></button>";
+                          }else{
+                              nextpageone='';
+                          }//else
+                          nextpagetwo='';
+                          nextpage=nextpageone;//////////////////  
+                          html_text+="</div>";//nextbutton div
+                          html_text+="</div>";//container
+                          html_preone=html_text;
+                          //console.log(jsontable);
+                          jsontableone=jsontable;
+                          $("#resulttable").html(html_text);
+                          for(var i=0;i<tablelength;i++){
+                            placeid=jsontable[i]['place_id'];
+                            var idnum='shouc'+i;
+                            if(in_array(placeid)){
+                              document.getElementById(idnum).setAttribute("class", "fa fa-star"); 
+                              document.getElementById(idnum).style.color='#FFBF00'; 
+                            }else{
+                              document.getElementById(idnum).setAttribute("class", "fa fa-star-o"); 
+                              document.getElementById(idnum).style.color='black'; 
+                            }//else
+                          }//for
+                          //console.log(jsontable);
+                          return;
+                       
+                  }else if(restatus=="ZERO_RESULTS" || restatus=="INVALID_REQUEST"){//status
+                    html_null='';
+                    html_null +="<div class='container'>";
+                    html_null +="<div class=\"alert alert-warning\" role=\"alert\">";
+                    html_null +="No records.";
+                    html_null +="</div>";
+                    html_null +="</div>";//container
+                    $("#resulttable").html(html_null); 
+                    return;
+                  }else{
+                      html_err='';
+                      html_err +="<div class='container'>";
+                      html_err +="<div class=\"alert alert-danger\" role=\"alert\">";
+                      html_err +="Fail to get search results.";
+                      html_err +="</div>";
+                      html_err +="</div>";//container
+                      $("#resulttable").html(html_err);  
+                      return;
+                  }
+
+                },
+            error : function() {
+                    document.getElementById('processbar').style.display='none';
+                    html_err="";
+                    html_err +="<div class='container'>";
+                    html_err +="<div class=\"alert alert-danger\" role=\"alert\">";
+                    html_err +="Fail to get search results.";
+                    html_err +="</div>";
+                    html_err +="</div>";//container
+                    $("#resulttable").html(html_err);  
+                    return;
+                }
+        });
+    }//function tijiao
+
+   
+
+function nextpg(){
+            pageno=pageno+1;
+            $.ajax({  
+            url: 'http://christine.us-west-1.elasticbeanstalk.com:8000/', 
+            //url: 'http://localhost:8000/', 
+            dataType: 'json',  
+            type: "GET",  
+            data: {'nextpage':nextpage,'todo':'nextrq'}, 
+            success: function (result) {
+              //console.log(result);
+              
+
+                     html_text="";
+                     html_null="";
+                     html_err="";
+                     jsontable=result['results']; 
+                    var restatus=result['status'];
+                    html_text +="<div class='container'>";
+                    html_text += "<div class=\"d-flex justify-content-end\">"
+                    html_text += "<button type=\"button\" class=\"btn btn-outline-secondary\" id='detailbutton' onclick='andetail();detailinfo(dtpageplaceid,scjilu)' disabled>Details&nbsp;<i class=\"fa fa-angle-right\"></i></button></div>";
+                    html_text +="<div class='table-responsive-md'>";
+                    html_text += "<table class=\"table table-hover\">";
+                    html_text += "<thead>";
+                    html_text += "<tr>";
+                    html_text += "<th scope=\"col\">#</th>";
+                    html_text += "<th scope=\"col\">Category</th>";
+                    html_text += "<th scope=\"col\">Name</th>";
+                    html_text += "<th scope=\"col\">Address</th>";
+                    html_text += "<th scope=\"col\">Favorite</th>";
+                    html_text += "<th scope=\"col\">Details</th>";
+                    html_text += "</tr>";
+                    html_text += "</thead>";
+
+ 
+                    if(restatus=="OK")
+                    {
+                        var tablelength=Math.min(jsontable.length,20);
+                         html_text += "<tbody>";
+                        for (var i = 0; i < tablelength; i++)
+                        {
+                           jicon=jsontable[i]['icon'];
+                           jname=jsontable[i]['name'];
+                           jv=jsontable[i]['vicinity'];
+                          placeid=jsontable[i]['place_id'];
+                          var shouc='shouc'+i; 
+                          var hangno='hang'+i;//////////////////////////////
+                          html_text += "<tr id='"+hangno+"'>";/////////////////////
+                          html_text += "<th scope=\"row\">"+(i+1)+"</th>";
+                          html_text += "<td><img src=\""+jicon+"\"height=30px width=50px;></td>";
+                          html_text += "<td>"+jname+"</td>";
+                          html_text += "<td>"+jv+"</td>";
+                          var jname1=escape(jname);
+                          var jv1=escape(jv);
+                          var yitiao={"icon":jicon,"name":jname1,"vicinity":jv1,"place_id":placeid};
+
+                          yitiao=JSON.stringify(yitiao);
+                          html_text += "<td><button  onclick='bianse("+i+","+yitiao+");' type=\"button\" class=\"btn btn-outline-secondary\"><i class=\"fa fa-star-o\" id='"+shouc+"' style='color:black'></i></button></td>";
+                          html_text += "<td><button type=\"button\" class=\"btn btn-outline-secondary\" value="+placeid+" onclick='detailinfo(value,"+yitiao+");anjiantou();'><i class=\"fa fa-angle-right\"></i></button></td>";
+                          html_text += "</tr>";                       
+                          //console.log(placeid);  
+                         }//for
+                          html_text+="</tbody></table>";
+                          html_text+="</div>";//responsivetable div
+                          if(result.hasOwnProperty('next_page_token')&&pageno==2){
+                              nextpagetwo=result['next_page_token'];
+                              nextpage=nextpagetwo;
+                              html_text+="<div id=\"prenext\" align=\"center\">";
+                              html_text+="<button type='button' class='btn btn-outline-secondary' onclick='previousone();prepageone()'><span style='font-size:13px'><strong>Previous</strong></span></button>";
+                              html_text+="&nbsp;&nbsp;&nbsp;";
+                              html_text+="<button type='button' class='btn btn-outline-secondary' onclick='nextpg()'><span style='font-size:13px'><strong>Next</strong></span></button>";
+                              html_text+="</div>";
+                              html_text+="</div>";//container
+                              html_pretwo=html_text;
+                              jsontabletwo=jsontable;
+                              }else if(!result.hasOwnProperty('next_page_token') && pageno==3){
+                                html_text+="<div id='previousbutton' align='center'>";
+                                html_text+="<button type='button' class='btn btn-outline-secondary' onclick='previoustwo();prepagetwo()'><span style='font-size:13px'><strong>Previous</strong></span></button>";
+                                html_text+="</div>";
+                                html_text+="</div>";//container
+                              }else if(!result.hasOwnProperty('next_page_token') && pageno==2){
+                                html_text+="<div id='previousbutton' align='center'>";
+                                html_text+="<button type='button' class='btn btn-outline-secondary' onclick='previousone();prepageone()'><span style='font-size:13px'><strong>Previous</strong></span></button>";
+                                html_text+="</div>";
+                                html_text+="</div>";//container
+                                jsontabletwo='';
+                              }
+                            //console.log(pageno);
+                          //console.log(nextpage);
+                          $("#resulttable").html(html_text);
+                          for(var i=0;i<tablelength;i++){
+                            placeid=jsontable[i]['place_id'];
+                            if(placeid==dtpageplaceid){
+                            document.getElementById('hang'+i).style.backgroundColor='#F3E2A9'; 
+                              }//if placeid
+                            var idnum='shouc'+i;
+                            if(in_array(placeid)){
+                              document.getElementById(idnum).setAttribute("class", "fa fa-star"); 
+                              document.getElementById(idnum).style.color='#FFBF00'; 
+                            }else{
+                              document.getElementById(idnum).setAttribute("class", "fa fa-star-o"); 
+                              document.getElementById(idnum).style.color='black'; 
+                            }//else
+                          }//for
+                          if(scjilu!=''){
+                              kaidtbutton();
+                             }//if scjl
+                          return;
+                       
+                  }else if(restatus=="ZERO_RESULTS" || restatus=="INVALID_REQUEST"){//status
+                    html_null='';
+                    html_null +="<div class='container'>";
+                    html_null +="<div class=\"alert alert-warning\" role=\"alert\">";
+                    html_null +="No records.";
+                    html_null +="</div>";
+                    html_null +="</div>";//container
+                    $("#resulttable").html(html_null); 
+                    return;
+                  }else{
+                      html_err='';
+                      html_err +="<div class='container'>";
+                      html_err +="<div class=\"alert alert-danger\" role=\"alert\">";
+                      html_err +="Fail to get search results.";
+                      html_err +="</div>";
+                      html_err +="</div>";//container
+                      $("#resulttable").html(html_err);  
+                      return;
+                  }
+
+            },
+            error : function() {
+                    html_err="";
+                    html_err +="<div class='container'>";
+                    html_err +="<div class=\"alert alert-danger\" role=\"alert\">";
+                    html_err +="Fail to get search results.";
+                    html_err +="</div>";
+                    html_err +="</div>";//container
+                    $("#resulttable").html(html_err);  
+                    return;
+                }
+        });
+  document.getElementById('resulttable').innerHTML='';
+ }//function
+
+ function printrspg(){
+   if(pageno==1 && jsontableone!=''){
+     prepageone();
+   }else if(pageno==2 && jsontabletwo!=''){
+    prepagetwo();
+   }else{
+    var tablelength=Math.min(jsontable.length,20);
+  document.getElementById('resulttable').innerHTML='';
+  $("#resulttable").html(html_text);
+  for(var i=0;i<tablelength;i++){
+  placeid=jsontable[i]['place_id'];
+  if(placeid==dtpageplaceid){
+  document.getElementById('hang'+i).style.backgroundColor='#F3E2A9'; 
+    }//if placeid
+  var idnum='shouc'+i;
+  if(in_array(placeid)){
+    document.getElementById(idnum).setAttribute("class", "fa fa-star"); 
+    document.getElementById(idnum).style.color='#FFBF00'; 
+  }else{
+    document.getElementById(idnum).setAttribute("class", "fa fa-star-o"); 
+    document.getElementById(idnum).style.color='black'; 
+      }//else
+    }//for
+    if(scjilu!=''){
+         kaidtbutton();
+      }//if scjl
+   }//else
+ }//function printrspg
+
+
+ function previousone(){
+    pageno=pageno-1;
+  nextpage=nextpageone;
+ }//function previousone
+
+ function previoustwo(){
+  pageno=pageno-1;
+  nextpage=nextpagetwo;
+ }//function previoustwo
+
+
+function prepageone(){
+  var tablelength=Math.min(jsontableone.length,20);
+  document.getElementById('resulttable').innerHTML='';
+  $("#resulttable").html(html_preone);
+  for(var i=0;i<tablelength;i++){
+  placeid=jsontableone[i]['place_id'];
+  if(placeid==dtpageplaceid){
+  document.getElementById('hang'+i).style.backgroundColor='#F3E2A9'; 
+    }//if placeid
+  var idnum='shouc'+i;
+  if(in_array(placeid)){
+    document.getElementById(idnum).setAttribute("class", "fa fa-star"); 
+    document.getElementById(idnum).style.color='#FFBF00'; 
+  }else{
+    document.getElementById(idnum).setAttribute("class", "fa fa-star-o"); 
+    document.getElementById(idnum).style.color='black'; 
+  }//else
+}//for
+if(scjilu!=''){
+         kaidtbutton();
+      }//if scjl
+}//function prepageone
+
+function prepagetwo(){
+var tablelength=Math.min(jsontabletwo.length,20);
+document.getElementById('resulttable').innerHTML='';
+  $("#resulttable").html(html_pretwo);
+  for(var i=0;i<tablelength;i++){
+  placeid=jsontabletwo[i]['place_id'];
+  if(placeid==dtpageplaceid){
+  document.getElementById('hang'+i).style.backgroundColor='#F3E2A9'; 
+    }//if placeid
+  var idnum='shouc'+i;
+  if(in_array(placeid)){
+    document.getElementById(idnum).setAttribute("class", "fa fa-star"); 
+    document.getElementById(idnum).style.color='#FFBF00'; 
+  }else{
+    document.getElementById(idnum).setAttribute("class", "fa fa-star-o"); 
+    document.getElementById(idnum).style.color='black'; 
+  }//else
+}//for
+if(scjilu!=''){
+         kaidtbutton();
+      }//if scjl
+}//function prepagetwo
+
+function yelpreq(){
+  document.getElementById('yelpreview').innerHTML='';
+  document.getElementById('processbar').style.display='';
+  $.ajax({  
+            url: 'http://christine.us-west-1.elasticbeanstalk.com:8000/', 
+            //url: 'http://localhost:8000/', 
+            dataType: 'json',  
+            type: "GET",  
+            data: {'name':dtplacename,'address1':address1,'state':yelpstate,'city':yelp_city,'country':yelp_country,'todo':'yelpreq'}, 
+            success: function (result) {
+                document.getElementById('processbar').style.display='none';
+               //console.log(result);
+               ypreviewlist=result;
+               
+               if(document.getElementById('dropdownmenulist').innerHTML=='Default Order'){
+                printdfyp();
+               }else if(document.getElementById('dropdownmenulist').innerHTML=='Highest Rating'){
+                printhiyp();
+               }else if(document.getElementById('dropdownmenulist').innerHTML=='Lowest Rating'){
+                printloyp();
+              }else if(document.getElementById('dropdownmenulist').innerHTML=='Most Recent'){
+                printmryp();
+              }else if(document.getElementById('dropdownmenulist').innerHTML=='Least Recent'){
+                printlryp();
+              }//if order
+
+              },
+            error : function() {
+              document.getElementById('processbar').style.display='none';
+                    html_err="";
+                    html_err +="<div class='container'>";
+                    html_err +="<div class=\"alert alert-danger\" role=\"alert\">";
+                    html_err +="Fail to get search results.";
+                    html_err +="</div>";
+                    html_err +="</div>";//container
+                    $("#yelpreview").html(html_err);  
+                    return;
+                }
+        });
+
+}//function
+  
+
+
+
+
+
+ </SCRIPT> 
+
+<div style="font-size: 5px">&nbsp;</div>
+
+  <div class="container" >
+    <div class="col-sm-12 d-flex justify-content-center" >
+    <ul class="nav nav-pills id='pills-tab' role='tablist">
+      <li class="nav-item">
+        <a class="nav-link active" id="pills-Results-tab" data-toggle="pill" href="#resulttable" role="tab" aria-controls="pills-Results" aria-selected="true" onclick='anlist();printrspg();rfflagone();'>Results</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="pills-Favorites-tab" data-toggle="pill" href="#favopage" role="tab" aria-controls="pills-Favorites" aria-selected="false" onclick="anlist();printfav(localarray);rfflagzero();">Favorites</a>
+      </li>
+      </ul>
+      </div>
+    </div>
+
+<div style="font-size: 30px">&nbsp;</div>
+
+
+  <div id="processbar" style="display:none">
+    <div class="container">
+      <div class="progress">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 50%" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100" style="width: 75%"></div>
+        </div>
+    </div> 
+</div>
+
+
+
+
+<script type="text/javascript">
+function rfqiehuan(){
+  if(rfflag==1){
+   document.getElementById('pills-Results-tab').click();
+  }else{
+    document.getElementById('pills-Favorites-tab').click(); 
+  }//else rfflag
+}//function rfqiehuan
+
+function rfflagone(){
+   rfflag=1;
+} //function rfflagone 
+
+function rfflagzero(){
+   rfflag=0;
+}//function rfflagzero
+
+function anjiantou(){
+  document.getElementById('jiajiantou').click();
+}
+
+function anlist(){
+  document.getElementById('jialist').click();
+}
+
+function kaidtbutton(){
+  document.getElementById('detailbutton').disabled=false;
+}
+function kaifvdtbutton(){
+  document.getElementById('fvdtbutton').disabled=false;
+}//function kaifvdtbutton
+
+function andetail(){
+  document.getElementById('jiajiantou').click();
+}
+</script>
+
+<div ng-controller="MyCtrl">
+  <div class='container'>
+  <div class='animate-show tab-content' ng-hide="valueslide" id="zhuye">
+    <div id='resulttable' class='tab-pane fade show active' role="tabpanel" aria-labelledby="pills-Results-tab">
+    </div><!-- resulttable div -->
+
+    <div id='favopage' class="tab-pane fade" role="tabpanel" aria-labelledby="pills-Favorites-tab">    
+     <div class="alert alert-warning" role="alert">
+     No records.
+     </div>
+    </div><!-- favopage div -->
+
+  </div><!-- zhuye -->
+ </div><!-- container --> 
+
+    <div id='yincangbottons'>
+      <input type="button" value="jiantou" id="jiajiantou" style="display:none;" ng-click='valueslide=true'/>
+      <input type="button" value="list" id="jialist" style="display:none;" ng-click='valueslide=false' />
+    </div>
+
+  <div class='animate-show' ng-show="valueslide" id="dtinfo">
+    <div class='container'>
+      <div align='center' id='dtnamefield' style="font-weight: bold">
+      </div><!-- dtnamefield -->
+      <div style='font-size: 7px'>&nbsp;</div>
+
+      <div class="d-flex justify-content-between">
+      <div ><button type="button" class="btn btn-outline-secondary" onclick='rfqiehuan()'><i class="fa fa-angle-left"></i>&nbsp;List</button></div>
+      <div ><button type="button" class="btn btn-outline-secondary" onclick="dtscbianse(scjilu)"><i class="fa fa-star-o" style='color:black' id='dtshoucang'></i></button>
+        &nbsp;&nbsp;
+        <a href='' id='twitterbutton'><button class="btn btn-secondary" style="background-image: url(https://pbs.twimg.com/profile_images/1111729635610382336/_65QFl7B.png); width: 40px; height:40px; background-size: 100%;"></button></a></div>
+      </div><!--  //list div row -->
+    
+      <div id='navfield'>
+      <ul class='nav nav-tabs d-flex justify-content-end' id='myTab' role='tablist'>
+      <li class='nav-item'>
+      <a class="nav-link active" id="Info-tab" data-toggle="tab" href="#Info" role="tab" aria-controls="Info" aria-selected="true">Info</a></li>
+      <li class='nav-item'>
+      <a class="nav-link" id="Photos-tab" data-toggle="tab" href="#Photos" role="tab" aria-controls="Photos" aria-selected="false">Photos</a></li>
+      <li class='nav-item'>
+      <a class="nav-link" id="Map-tab" data-toggle="tab" href="#Maptabtab" role="tab" aria-controls="Maptabtab" aria-selected="false">Map</a></li>
+      <li class='nav-item'>
+      <a class="nav-link" id="Reviews-tab" data-toggle="tab" href="#Reviews" role="tab" aria-controls="Reviews" aria-selected="false">Reviews</a></li>
+      </ul><!-- //nav -->
+      </div><!--nav field-->
+
+      <br>
+
+      <div class="tab-content" id="myTabContent">
+      <div class="tab-pane fade show active" id="Info" role="tabpanel" aria-labelledby="Info-tab">
+      <div class="table-responsive-md" id='Infotablebanma'>
+      </div><!-- table-responsive -->
+      </div><!-- Info-tab div -->
+
+      <div class="tab-pane fade" id="Photos" role="tabpanel" aria-labelledby="Photos-tab">
+      </div> <!-- photo-tab div -->
+
+      <div class="tab-pane fade" id="Maptabtab" role="tabpanel" aria-labelledby="Map-tab">
+      </div><!-- map-tab div -->
+
+      <div class="tab-pane fade" id="Reviews" role="tabpanel" aria-labelledby="Reviews-tab">
+      <div class='row'>
+      <div class="btn-group">
+      <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id='gybutton'>Google Reviews</button>
+      <div class="dropdown-menu">
+      <a class="dropdown-item" href="javascript:void(0)" ng-click="valuefade=flase" onclick='huangoogle()' id='googlervbutton'>Google Reviews</a>
+      <a class="dropdown-item" href="javascript:void(0)" ng-click="valuefade=true" onclick='huanyelp();yelpreq();'>Yelp Reviews</a>
+      </div><!-- dropdown -->
+      </div><!-- btn-group -->
+      &nbsp;&nbsp;&nbsp;&nbsp;
+    
+      <div class="btn-group">
+      <button class="btn btn-secondary btn-sm dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id='dropdownmenulist'>Default Order</button>
+      <div class="dropdown-menu">
+      <a class="dropdown-item" href="javascript:void(0)" onclick='printdforder();printdfyp();'>Default Order</a>
+      <a class="dropdown-item" href="javascript:void(0)" onclick='printhighorder();printhiyp();'>Highest Rating</a>
+      <a class="dropdown-item" href="javascript:void(0)" onclick='printloworder();printloyp();'>Lowest Rating</a>
+      <a class="dropdown-item" href="javascript:void(0)" onclick='printmrorder();printmryp();'>Most Recent</a>
+      <a class="dropdown-item" href="javascript:void(0)" onclick='printlrorder();printlryp();'>Least Recent</a>
+      </div><!-- dropdown -->
+      </div><!-- btn-group -->
+      </div><!-- row for button -->
+      <div style="font-size: 4px">&nbsp;</div>
+      <div id='pinglunqu'>
+      <div class="animate-show2" ng-hide="valuefade" id='googlereview'></div>
+      <div class="animate-show2" ng-show="valuefade" id='yelpreview'></div>
+      </div><!-- pinglunqu -->
+
+      </div><!-- review-tab -->
+
+     </div><!-- mytabcontent div -->
+    </div> <!-- container -->
+  </div> <!--dtinfo div-->
+</div><!--ng controller-->
+
+
+
+<script type="text/javascript">
+function showbar(){
+  document.getElementById('processbar').style.display="";
+  if(document.getElementById('locationname').value!=''){
+    splocation=document.getElementById('locationname').value;
+  }else{
+   splocation='';
+  }//else
+}//if
+
+function huanyelp(){
+  document.getElementById('gybutton').innerHTML='Yelp reviews';
+}//function
+
+function huangoogle(){
+  document.getElementById('gybutton').innerHTML='Google reviews';
+}//function
+</script>
+
+
+
+<script type="text/javascript">
+var defaultBounds = new google.maps.LatLngBounds(
+  new google.maps.LatLng(34.0266, -118.2831),
+  new google.maps.LatLng(40.7127753, -74.0059728));
+
+var input = document.getElementById('locationname');
+var options = {
+  bounds: defaultBounds,
+  types: ['establishment']
+};
+
+autocomplete = new google.maps.places.Autocomplete(input, options);
+</script>
+
+
+<div id='detailpage'>
+</div>
+
+<script type="text/javascript"> 
+
+function dtscbianse(jilu){
+  //console.log(jilu);
+    var keyzhi=jilu.place_id;
+  jilu=JSON.stringify(jilu);  
+  if(document.getElementById('dtshoucang').style.color=='black'){
+  document.getElementById('dtshoucang').setAttribute("class", "fa fa-star"); 
+  document.getElementById('dtshoucang').style.color='#FFBF00'; 
+  localStorage.setItem(keyzhi,jilu);
+  localarray.push(keyzhi);
+  var cunvalue=JSON.stringify(localarray);
+  localStorage.setItem("wodelocalarray", cunvalue);
+  //console.log(localarray);
+  //printfav(localarray);
+  }else{
+  document.getElementById('dtshoucang').setAttribute("class", "fa fa-star-o"); 
+  document.getElementById('dtshoucang').style.color='black'; 
+   localStorage.removeItem(keyzhi);
+   localarray = localarray.filter(function (item) {  
+      return item!=keyzhi;
+   });
+   var cunvalue=JSON.stringify(localarray);
+    localStorage.setItem("wodelocalarray", cunvalue);
+  }//else if
+}//function dtscbianse
+
+function in_array(pid){
+  for(var i=0;i<localarray.length;i++){
+    if(localarray[i]==pid){
+      return true;
+    }//if
+   }return false;//for
+  }//function in_array
+
+
+function detailinfo(placeidid,shoucangjl){
+  scjilu=shoucangjl;
+  dtpageplaceid=placeidid;
+
+  if(in_array(placeidid)){
+      document.getElementById('dtshoucang').setAttribute("class", "fa fa-star"); 
+      document.getElementById('dtshoucang').style.color='#FFBF00'; 
+    }else{
+      document.getElementById('dtshoucang').setAttribute("class", "fa fa-star-o"); 
+      document.getElementById('dtshoucang').style.color='black'; 
+    }//else
+
+var request = {
+  placeId: placeidid
+};
+service = new google.maps.places.PlacesService(detailpage);
+service.getDetails(request, callback);
+
+}//function detailinfo
+
+function callback(place, status) {
+  if (status == google.maps.places.PlacesServiceStatus.OK) {
+    drcount=0;
+    //console.log(place);
+     dtplacename= place.hasOwnProperty('name') ? place.name : "";
+     dtaddress= place.hasOwnProperty('formatted_address') ? place.formatted_address : "";
+    var phonenum= place.hasOwnProperty('international_phone_number') ?place.international_phone_number : "";
+    var pricelv=place.hasOwnProperty('price_level') ? place.price_level : "";
+    var pricest='';
+    for(var i=0;i<pricelv;i++){
+      pricest+='$';
+    }//for
+    var rate= place.hasOwnProperty('rating') ? place.rating : 0;
+    var googlepage= place.hasOwnProperty('url') ? place.url : "";
+    website= place.hasOwnProperty('website') ? place.website : "";
+    var openh = place.hasOwnProperty('opening_hours') ? place.opening_hours : "";
+    //console.log(openh);
+////////////////////////////
+    var twitterhref='';
+    twitterhref='https://twitter.com/intent/tweet?text='+'Check out '+dtplacename+' located at '+dtaddress+'.'+' Website:'+website+' &hashtags='+'TravelAndEntertainmentSearch';
+    //console.log(twitterhref);
+    $("#twitterbutton").attr("href",twitterhref); 
+///////////////////////////抓取yelp需要的match参数
+    address1=dtaddress.split(",")[0];
+    //console.log(address1);
+////////////抓取yelpstate:
+    if(place.hasOwnProperty('address_components')){
+      var address_components=place.address_components;
+
+      for(var i=0;i<address_components.length;i++){
+        for(var j=0;j<address_components[i].types.length;j++){
+          if(address_components[i].types[j]=='administrative_area_level_1'){
+            if(address_components[i].hasOwnProperty('short_name')){
+            yelpstate=address_components[i].short_name;
+           }//if has short name
+          }//if = add level 1
+        }//for type.length
+      }//for address_components
+
+      ////////////////抓city
+     for(var i=0;i<address_components.length;i++){
+        for(var j=0;j<address_components[i].types.length;j++){
+          if(address_components[i].types[j]=='locality'){
+            if(address_components[i].hasOwnProperty('short_name')){
+            yelp_city=address_components[i].short_name;
+           }//if has short name
+          }//if = add level 1
+        }//for type.length
+      }//for address_components
+
+    ////////////////抓country
+    for(var i=0;i<address_components.length;i++){
+        for(var j=0;j<address_components[i].types.length;j++){
+          if(address_components[i].types[j]=='country'){
+            if(address_components[i].hasOwnProperty('short_name')){
+            yelp_country=address_components[i].short_name;
+           }//if has short name
+          }//if = add level 1
+        }//for type.length
+      }//for address_components
+
+    }else{
+      address_components='';
+    }//else has add-components
+ //console.log(yelp_country);
+/////////////////////////////////抓取结束
+    document.getElementById('dtnamefield').innerHTML=dtplacename;   
+///////////////juti xinxi
+    html_detail="";
+    html_detail+="<table class=\"table table-striped\">";    
+    html_detail+="<tbody>";    
+    if(dtaddress!=""){
+    html_detail+="<tr><td style='font-size:13px'><strong>Address</strong></td><td style='font-size:13px'>"+dtaddress+"</td></tr>";}
+    if(phonenum!=""){
+    html_detail+="<tr><td style='font-size:13px'><strong>Phone Number</strong></td><td style='font-size:13px'>"+phonenum+"</td></tr>";}
+    if(pricelv!=""){
+    html_detail+="<tr><td style='font-size:13px'><strong>Price Level</strong></td><td style='font-size:13px'>"+pricest+"</td></tr>";}
+    if(rate!=""){
+    html_detail+="<tr><td><strong>Rating</strong></td><td><div style='font-size:13px;' class='float-left'>"+rate+"</div><div id='ratingstar' class='float-left' style='overflow:hidden;width:65px;'><div style='font-family:Arial;font-size:13px;color:orange;'>&#9733&#9733&#9733&#9733&#9733</div></div></td></tr>";
+    }
+    if(googlepage!=""){
+    html_detail+="<tr><td style='font-size:13px'><strong>Google Page</strong></td><td style='font-size:13px'><a href='"+googlepage+"' target='_blank'>"+googlepage+"</td></tr>";}
+    if(website!=""){
+    html_detail+="<tr><td style='font-size:13px'><strong>Website</strong></td><td style='font-size:13px'><a href='"+website+"' target='_blank'>"+website+"</td></tr>";}
+    if(openh!=""){
+    var localtoday=moment().utc().utcOffset(place.utc_offset).format("d");
+    //console.log(localtoday);
+    html_detail+="<tr><td style='font-size:13px'><strong>Hours</strong></td><td style='font-size:13px'>";
+    localtoday=localtoday-1;
+    if(localtoday<0){
+      localtoday=localtoday+7;
+    }//if localtoday<0
+     todayopen=place.opening_hours.weekday_text[localtoday];
+     //console.log(todayopen);
+     stindex=0;
+     for(var j=0;j<todayopen.length;j++){
+      if (todayopen[j]=='y'){
+          stindex=j+3;
+      }//ify
+     }//forj
+     var hour='';
+     daystr=todayopen.slice(0,stindex-2);
+     //console.log(daystr);
+     hour=todayopen.slice(stindex,todayopen.length);
+     //console.log(hour);
+    if(place.opening_hours.open_now==true){
+    html_detail+="Open now:";
+     html_detail+=hour;
+    }else{
+      html_detail+="Closed";
+    }
+
+    html_detail+="&nbsp;&nbsp;&nbsp;&nbsp;";
+    html_detail+="<a href='#Modalhour' data-toggle='modal'>Daliy open hours</a>";
+    html_detail+="</tbody></table>";
+
+    html_detail+="<div class='modal fade bd-example-modal-md' id='Modalhour' tabindex='-1' role='dialog' aria-labelledby='ModalhourTitle' aria-hidden='true'>";
+    html_detail+="<div class='modal-dialog modal-dialog modal-md' role='document'>";
+    html_detail+="<div class='modal-content'>";
+    html_detail+="<div class='modal-header'>";
+    html_detail+="<h5 class='modal-title' id='ModalhourTitle'>Open hours</h5>";
+    html_detail+="<button type='button' class='close' data-dismiss='modal' aria-label='Close'>";
+    html_detail+="<span aria-hidden='true'>&times;</span></button></div>";
+    html_detail+="<div class='modal-body'>";
+
+    html_detail+="<table class='table'><tbody>";
+
+    html_detail+="<tr><th scope=\"row\">"+daystr+"</th><th>"+hour+"</th></tr>";
+    for(var m=localtoday+1;m<7;m++){
+     opentimestr=place.opening_hours.weekday_text[m];
+     timeindex=0;
+     for(var j=0;j<opentimestr.length;j++){
+      if (opentimestr[j]=='y'){
+          timeindex=j+3;
+      }//ify
+     }//forj
+    var hourtime='';
+     daystring=opentimestr.slice(0,timeindex-2);
+     hourtime=opentimestr.slice(timeindex,opentimestr.length);
+     html_detail+="<tr><td scope='row'>"+daystring+"</td>";
+     html_detail+="<td>"+hourtime+"</td></tr>";
+    daystring='';
+     hourtime='';
+    }//for m
+
+    for(var m=0;m<localtoday;m++){
+     opentimestr=place.opening_hours.weekday_text[m];
+     timeindex=0;
+     for(var j=0;j<opentimestr.length;j++){
+      if (opentimestr[j]=='y'){
+          timeindex=j+3;     
+      }//ify
+     }//forj
+    var hourtime='';
+     daystring=opentimestr.slice(0,timeindex-2);
+     hourtime=opentimestr.slice(timeindex,opentimestr.length);
+     html_detail+="<tr><td scope='row'>"+daystring+"</td>";
+     html_detail+="<td>"+hourtime+"</td></tr>";
+     daystring='';
+     hourtime='';
+    }//for m
+
+   
+
+    html_detail+="</tbody></table>";
+    
+    html_detail+="</div><div class='modal-footer'>";
+    html_detail+="<button type='button' class='btn btn-secondary' data-dismiss='modal'>Close</button>";
+    html_detail+="</div></div></div></div>";
+    html_detail+="</td></tr>";
+    }else{//openh!=""
+      html_detail+="</tbody></table>";
+    }    
+    
+     $("#Infotablebanma").html(html_detail);
+
+///////photo      
+    html_detail='';
+    
+   var photos = place.photos;
+        html_c1='';
+        html_c2='';
+        html_c3='';
+        html_c4='';
+      if (!photos) {
+        html_detail +="<div class='container'>";
+        html_detail +="<div class=\"alert alert-warning\" role=\"alert\">";
+        html_detail +="No records.";
+        html_detail +="</div>";
+        html_detail +="</div>";//container
+      }else{
+      var phlength=photos.length;
+      html_detail +="<div class='container'>";
+      //html_detail +="<div class='card-columns'>";
+        html_detail+="<div class='row'>";
+        html_detail+="<div class='col-md-3' id='column1'></div>";
+        html_detail+="<div class='col-md-3' id='column2'></div>";
+        html_detail+="<div class='col-md-3' id='column3'></div>";
+        html_detail+="<div class='col-md-3' id='column4'></div>";
+        
+      for(var i=0;i<phlength;i++){
+        var photourl=photos[i].getUrl({'maxWidth': 500, 'maxHeight': 500});
+        if(i%4==0){
+          html_c1+="<a href='"+photourl+"' target='_blank'><img  src='"+photourl+"' class='img-thumbnail'></a>";
+        }else if(i%4==1){
+          html_c2+="<a href='"+photourl+"' target='_blank'><img  src='"+photourl+"' class='img-thumbnail'></a>";
+        }else if(i%4==2){
+          html_c3+="<a href='"+photourl+"' target='_blank'><img  src='"+photourl+"' class='img-thumbnail'></a>";
+        }else{
+          html_c4+="<a href='"+photourl+"' target='_blank'><img  src='"+photourl+"' class='img-thumbnail'></a>";
+        }
+        }//for
+        html_detail+="</div>";//row div
+        html_detail +="</div>";//container
+      }//else
+    
+   $("#Photos").html(html_detail);
+
+
+
+/////////////map
+    html_detail='';   
+    html_detail+="<form id='mapform' class=\"form-group\" >";
+    html_detail+="<div class='row'>";
+    html_detail+="<div class='col-sm-4' >"
+    html_detail+="<label for='from' class='col-form-label' style=\"font-size:13px\"><span>From</span></label>";
+    html_detail+="<input type=\"text\"  name=\"fromfield\" class=\"form-control form-control-sm\" id=\"fromfield\" onkeyup='dirval()'>";
+    html_detail+="</div>";//col-md-4
+
+    html_detail+="<div class='col-sm-4' >";
+    html_detail+="<label for='toplace' class='col-form-label' style=\"font-size:13px\"><span>To</span></label>";
+    html_detail+="<input type=\"text\"  name=\"tofield\" class=\"form-control form-control-sm\" id=\"tofield\" readonly>";
+    html_detail+="</div>"; //col-md-4
+
+    html_detail+="<div class='col-sm-4'>";
+    html_detail+="<label for='TravelMode' class='col-form-label' style=\"font-size:13px\"><span>Travel Mode</span></label>";
+    html_detail+="<div class='form-group row'>";
+    html_detail+="<div class='col-sm-6'>";
+    html_detail+="<select class=\"custom-select form-control-sm\"  id=\"Travelmode\" NAME=\"Travelmode\">";
+    html_detail+="<option selected>Driving</option>";
+    html_detail+="<option value='Bicycling'>Bicycling</option>";
+    html_detail+="<option value='Transit'>Transit</option>";
+    html_detail+="<option value='Walking'>Walking</option>";
+    html_detail+="</select>";
+    html_detail+="</div>";//col-sm-5
+   
+    html_detail+="<div class='col-sm-5'><button type=\"button\" class=\"btn btn-sm btn-primary form-control-sm\" id=\"directionbutton\" onclick='initMapdir(placelat,placelng);drcountft();'><span style=\"font-size:13px\">Get Directions</span></button></div>";
+    html_detail+="</div>";//from-group row   
+    html_detail+="</div>";//col-sm-4
+    html_detail+="</div>";//row div
+    html_detail+="</form>";
+
+    html_detail+="<div id='xiaorenren'>"
+    html_detail+="<a href=\"javascript:void(0)\" onclick='initialize(placelat,placelng);huantu()'><img src=\"https://cdn1.vectorstock.com/i/1000x1000/12/90/simple-icon-360-degrees-360-degrees-view-vector-11261290.jpg\" height=50px width=50px;  style='border: solid 1px #CEECF5' ></a>";///////////
+    html_detail+="</div>";
+
+    html_detail+="<div id='map'>";
+    html_detail+="</div>";
+
+    html_detail+="<div id='panel' style='display:none'>";
+    html_detail+="</div>";
+
+    html_detail+="<div id='nodr' style='display:none'>";
+    html_detail +="<div class='container'>";
+    html_detail +="<div class=\"alert alert-warning\" role=\"alert\">";
+    html_detail +="No records.";
+    html_detail +="</div>";
+    html_detail +="</div>";//container
+    //html_detail+="lala";
+    html_detail+="</div>";
+    
+    $("#Maptabtab").html(html_detail);
+   
+
+   ///////////////////////////////////////////////////////////////////////////////////////review  
+    ////////////////pinglun
+    reviewlist= place.hasOwnProperty('reviews') ? place.reviews : "";
+    /////////////////////////////////////////////
+    //console.log(reviewlist);     
+    if(reviewlist!=""){
+      html_dforder='';
+    html_dforder+="<ul class=\"list-unstyled\">";  
+       rvlength=Math.min(5,reviewlist.length);
+      for (var j = 0; j<rvlength; j++){
+         html_dforder+="<li class=\"media mt-2\" style='border: solid 1px #BDBDBD'>";
+         if(reviewlist[j].hasOwnProperty("profile_photo_url"))
+            { var author_photo=reviewlist[j].profile_photo_url;
+              if(reviewlist[j].hasOwnProperty("author_url")){
+              html_dforder+="<a href='"+reviewlist[j].author_url+"' target=\"_blank\"><img class=\"mr-3\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\"></a>";
+             }else{
+              html_dforder+="<img class=\"mr-3\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\">";
+              }//else if has auntor_url
+            }else{
+              html_dforder+="<img class=\"mr-3\"  height=40px width=40px >";
+            }//else has profile_photo/////////////////
+          html_dforder+="<div class=\"media-body\">";
+          if(reviewlist[j].hasOwnProperty("author_name")){
+            if(reviewlist[j].hasOwnProperty("author_url")){
+            html_dforder+="<div><a href='"+reviewlist[j].author_url+"' target=\"_blank\"><b class=\"mt-0 mb-1\"><span style='font-color:blue'>"+reviewlist[j].author_name+"</span></a></b></div>";
+              }else{
+              html_dforder+="<div><span class=\"mt-0 mb-1\" style='font-weight:bold;color:#0080FF;'>"+reviewlist[j].author_name+"</span></div>";
+            }//if url
+          }else{//if name
+           html_dforder+="<div class=\"mt-0 mb-1\"></div>";//空name
+          }
+
+
+          var reviewstar="reviewstar_"+j;
+          html_dforder+="<div class='row'>";
+          html_dforder += "<div>&nbsp;&nbsp;&nbsp;</div>";
+          html_dforder+="<div id='"+reviewstar+"' style='overflow: hidden;width:65px;'><div style='font-family:Arial;font-size:13px;color:orange;'>&#9733&#9733&#9733&#9733&#9733</div></div>";
+          html_dforder += "<div>&nbsp;&nbsp;</div>";
+          html_dforder+="<div id='rvtime' style='font-size:13px;'>";
+          if(reviewlist[j].hasOwnProperty("time")){
+            var aurvtime=reviewlist[j].time *1000;
+            var fmtime=moment(aurvtime).format('YYYY-MM-DD HH:mm:ss');
+          }
+          html_dforder+=fmtime;
+          html_dforder+="</div>";//rvtime
+          html_dforder+="</div>";//row
+
+          if(reviewlist[j].text!=""){
+          html_dforder += "<div>"+reviewlist[j].text+"</div>";
+          }else{
+          html_dforder += "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+          } 
+          html_dforder+="</div>";//media-body
+          html_dforder+="</li>";
+      }//for
+     html_dforder+="</ul>";
+    }else{
+        html_dforder='';
+        html_dforder +="<div class='container'>";
+        html_dforder +="<div class=\"alert alert-warning\" role=\"alert\">";
+        html_dforder +="No records.";
+        html_dforder +="</div>";
+        html_dforder +="</div>";//container
+    }//else
+    
+
+ //////////////////////////////////////////////////////////////////////////////////////
+     
+    $("#column1").html(html_c1);
+    $("#column2").html(html_c2);
+    $("#column3").html(html_c3);
+    $("#column4").html(html_c4);
+    $("#googlereview").html(html_dforder); 
+    document.getElementById('Info-tab').click();
+    document.getElementById('googlervbutton').click();
+    document.getElementById('dropdownmenulist').innerHTML='Default Order';
+    
+
+    placelat=place.geometry.location.lat();
+    placelng=place.geometry.location.lng();
+    initMap(placelat,placelng);
+
+
+    if(splocation==''){
+      document.getElementById('fromfield').value='Your location';
+    }else{
+      document.getElementById('fromfield').value=splocation;
+    }//if splocation
+
+    var inputwo = document.getElementById('fromfield');
+    autocomplete = new google.maps.places.Autocomplete(inputwo, options);
+
+    tolocation='';
+    tolocation=dtplacename+','+dtaddress;
+    document.getElementById('tofield').value=tolocation;
+
+    if(rate!=""){
+    var wxlength=$("#ratingstar").width();
+    $("#ratingstar").width(rate/5*wxlength);
+    }//if rate
+
+   
+    ////////////////review 部分改星星
+   if(reviewlist!=""){
+     for(var i=0;i<rvlength;i++){
+       var xxwidth=$("#reviewstar_"+i).width();
+       var rvrating= reviewlist[i].hasOwnProperty('rating') ? reviewlist[i].rating : 0;
+       $("#reviewstar_"+i).width(rvrating/5*xxwidth);
+      }//for
+    }//if
+
+  }//status ok
+}//function callback
+//
+
+</script>
+
+<script type="text/javascript">
+  function dirval(){
+   var fromvalue = document.getElementById('fromfield').value;
+      fromvalue = fromvalue.replace(/\s+/g,"");
+  if(fromvalue.length== 0){
+  document.getElementById("directionbutton").disabled=true;
+  }
+  else{
+    document.getElementById("directionbutton").disabled=false;
+  }
+}//dir function
+</script>
+
+<script>
+      function dituqie(){
+        if(drcount==0){
+          initMap(placelat,placelng);
+        }else{
+          initMapdir(placelat,placelng);
+        }//else
+      }//function
+
+      function drcountft(){
+       drcount=drcount+1;
+      }//function
+
+      function initMapdir(placelat,placelng) {
+         document.getElementById('processbar').style.display='';
+        document.getElementById('panel').style.display='';
+        document.getElementById('nodr').style.display='none';
+        var directionsDisplay = new google.maps.DirectionsRenderer;
+        var directionsService = new google.maps.DirectionsService;
+        var mudi =  new google.maps.LatLng(placelat, placelng);
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 14,
+          center: mudi
+        });
+        directionsDisplay.setMap(map);
+        document.getElementById('panel').innerHTML='';
+        directionsDisplay.setPanel(document.getElementById('panel'));
+        calculateAndDisplayRoute(directionsService, directionsDisplay);
+      }
+
+      function calculateAndDisplayRoute(directionsService, directionsDisplay) {
+        if( document.getElementById('fromfield').value=='Your location'|| document.getElementById('fromfield').value=='My location'){
+           var start = new google.maps.LatLng(herelat, herelon);
+          }else{
+            var start = document.getElementById('fromfield').value;
+          }//if splocation
+        var end = document.getElementById('tofield').value;
+        if(document.getElementById('Travelmode').value=='Driving'){
+        var modexz='DRIVING';
+        }else if(document.getElementById('Travelmode').value=='Bicycling'){
+          modexz='BICYCLING';
+        }else if (document.getElementById('Travelmode').value=='Transit'){
+          modexz='TRANSIT';
+        }else if(document.getElementById('Travelmode').value=='Walking'){
+          modexz='WALKING';
+        }
+        directionsService.route({
+          origin: start,
+          destination: end,
+          travelMode: modexz,
+          provideRouteAlternatives: true,
+        }, function(response, status) {
+          if (status === 'OK') {
+             document.getElementById('processbar').style.display='none';
+            directionsDisplay.setDirections(response);
+          } else {
+            document.getElementById('panel').style.display='none';
+            document.getElementById('nodr').style.display='';
+             document.getElementById('processbar').style.display='none';
+          }//else
+        });
+      }
+
+
+    function initMap(placelat,placelng) {
+        var uluru = {lat: placelat, lng: placelng};
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 14,
+          center: uluru
+        });
+        var marker = new google.maps.Marker({
+          position: uluru,
+          map: map
+        });
+      } //function
+
+function initialize(placelat,placelng) {
+  document.getElementById('panel').style.display='none';
+    document.getElementById('map').innerHTML='';
+        var fenway = {lat: placelat, lng: placelng};
+        var panorama = new google.maps.StreetViewPanorama(
+            document.getElementById('map'), {
+              position: fenway,
+              pov: {
+                heading: 34,
+                pitch: 10
+              }
+            });
+      }//function
+
+    function printdfyp(){
+    document.getElementById('yelpreview').innerHTML='';
+     document.getElementById('dropdownmenulist').innerHTML='Default Order';
+                     
+      if(ypreviewlist!=""){
+                  html_yp=''; 
+                  if(ypreviewlist[0].hasOwnProperty("nomatch")){
+                  if(ypreviewlist[0].nomatch=='nomatch'){
+                  html_yp +="<div class='container'>";
+                  html_yp +="<div class=\"alert alert-warning\" role=\"alert\">";
+                  html_yp +="No records.";
+                  html_yp +="</div>";
+                  html_yp +="</div>";//container
+                  $("#yelpreview").html(html_yp); 
+                  }else{//nomatch
+                  html_err='';
+                  html_err +="<div class='container'>";
+                  html_err +="<div class=\"alert alert-danger\" role=\"alert\">";
+                  html_err +="Fail to get search results.";
+                  html_err +="</div>";
+                  html_err +="</div>";//container
+                  $("#yelpreview").html(html_err); 
+                  }//else nomatch=
+                  }else{
+                    html_yp+="<ul class=\"list-unstyled\">";
+                    var yprvlength=ypreviewlist.length;
+                    for (var j = 0; j<yprvlength; j++){
+                    html_yp+="<li class=\"media mt-2\" style='border: solid 1px #BDBDBD'>";
+                    if(ypreviewlist[j].hasOwnProperty("user")){
+                        if(ypreviewlist[j].user.hasOwnProperty("image_url")){
+                          var author_photo=ypreviewlist[j].user.image_url;
+                          if(ypreviewlist[j].hasOwnProperty("url")){
+                            html_yp+="<a href='"+ypreviewlist[j].url+"' target=\"_blank\"><img class=\"mr-3 rounded-circle\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\"></a>";
+                          }else{
+                            html_yp+="<img class=\"mr-3 rounded-circle\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\">";
+                          }//if has url
+                        }//if has img-url
+                    html_yp+="<div class=\"media-body\">";
+                    if(ypreviewlist[j].user.hasOwnProperty("name")){
+                        if(ypreviewlist[j].hasOwnProperty("url")){
+                            html_yp+="<div><a href='"+ypreviewlist[j].url+"' target=\"_blank\"><b class=\"mt-0 mb-1\"><span style='font-color:blue'>"+ypreviewlist[j].user.name+"</span></a></b></div>";
+                         }else{
+                            html_yp+="<div><span class=\"mt-0 mb-1\" style='font-weight:bold;color:#0080FF;'>"+ypreviewlist[j].user.name+"</span></div>";
+                         }//else if has url
+                        }//if has user.name
+                        html_yp+="<div class=\"mt-0 mb-1\"></div>";//空name
+                     }else{
+                        html_yp+="<div class=\"mt-0 mb-1\"></div>";//空name
+                     }//else if has user
+
+                     var reviewstar="ypreviewstar_"+j;
+                     html_yp+="<div class='row'>";
+                     html_yp+="<div>&nbsp;&nbsp;&nbsp;</div>";
+                     html_yp+="<div id='"+reviewstar+"' style='overflow: hidden;width:65px;'><div style='font-family:Arial;font-size:13px;color:orange;'>&#9733&#9733&#9733&#9733&#9733</div></div>";
+                     html_yp += "<div>&nbsp;&nbsp;</div>";
+                     html_yp+="<div id='rvtime' style='font-size:13px;'>";
+                     if(ypreviewlist[j].hasOwnProperty("time_created")){
+                      html_yp+=ypreviewlist[j].time_created;
+                     }//if has rvtime
+                     html_yp+="</div>";//rvtime
+                     html_yp+="</div>";//row
+
+                     if(ypreviewlist[j].hasOwnProperty("text")){
+                      if(ypreviewlist[j].text!=''){
+                        html_yp += "<div>"+ypreviewlist[j].text+"</div>";
+                         }else{
+                            "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+                         }//else if text !=''                     
+                      }else{//else has text pro
+                      html_yp += "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+                      } 
+                      html_yp+="</div>";//media-body
+                      html_yp+="</li>";
+                    }//for j
+                    html_yp+="</ul>";
+                  $("#yelpreview").html(html_yp);
+                  for(var i=0;i<yprvlength;i++){
+                   var xxwidth=$("#ypreviewstar_"+i).width();
+                   var rvrating= ypreviewlist[i].hasOwnProperty('rating') ? ypreviewlist[i].rating : 0;
+                   $("#ypreviewstar_"+i).width(rvrating/5*xxwidth);
+                  }//for
+                }//else if nomatch
+
+              }else{//else ypreview==''
+                html_yp ='';
+                html_yp +="<div class='container'>";
+                html_yp +="<div class=\"alert alert-warning\" role=\"alert\">";
+                html_yp +="No records.";
+                html_yp +="</div>";
+                html_yp +="</div>";//container
+                $("#yelpreview").html(html_yp); 
+                }//else
+        }//function pri df yp
+
+  function printhiyp(){
+     document.getElementById('yelpreview').innerHTML='';
+    document.getElementById('dropdownmenulist').innerHTML='Highest Rating';
+    
+    if(ypreviewlist!=""){
+       html_yp=''; 
+      if(ypreviewlist[0].hasOwnProperty("nomatch")){
+      if(ypreviewlist[0].nomatch=='nomatch'){
+      html_yp +="<div class='container'>";
+      html_yp +="<div class=\"alert alert-warning\" role=\"alert\">";
+      html_yp +="No records.";
+      html_yp +="</div>";
+      html_yp +="</div>";//container
+      $("#yelpreview").html(html_yp); 
+      }else{//nomatch
+      html_err='';
+      html_err +="<div class='container'>";
+      html_err +="<div class=\"alert alert-danger\" role=\"alert\">";
+      html_err +="Fail to get search results.";
+      html_err +="</div>";
+      html_err +="</div>";//container
+      $("#yelpreview").html(html_err); 
+      }//else nomatch=
+      }else{
+      var arr = ypreviewlist.concat();
+      function compare(property){
+        return function(a,b){
+        var value1 = a[property];
+        var value2 = b[property];
+        return value2 - value1;
+       }//function ab
+      }//function compare
+    arr.sort(compare('rating'));
+                 
+                    html_yp+="<ul class=\"list-unstyled\">";
+                    var yprvlength=arr.length;
+                    for (var j = 0; j<yprvlength; j++){
+                    html_yp+="<li class=\"media mt-2\" style='border: solid 1px #BDBDBD'>";
+                    if(arr[j].hasOwnProperty("user")){
+                        if(arr[j].user.hasOwnProperty("image_url")){
+                          var author_photo=arr[j].user.image_url;
+                          if(arr[j].hasOwnProperty("url")){
+                            html_yp+="<a href='"+arr[j].url+"' target=\"_blank\"><img class=\"mr-3 rounded-circle\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\"></a>";
+                          }else{
+                            html_yp+="<img class=\"mr-3 rounded-circle\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\">";
+                          }//if has url
+                        }//if has img-url
+                    html_yp+="<div class=\"media-body\">";
+                    if(arr[j].user.hasOwnProperty("name")){
+                        if(arr[j].hasOwnProperty("url")){
+                            html_yp+="<div><a href='"+arr[j].url+"' target=\"_blank\"><b class=\"mt-0 mb-1\"><span style='font-color:blue'>"+arr[j].user.name+"</span></a></b></div>";
+                         }else{
+                            html_yp+="<div><span class=\"mt-0 mb-1\" style='font-weight:bold;color:#0080FF;'>"+arr[j].user.name+"</span></div>";
+
+                         }//else if has url
+                        }//if has user.name
+                        html_yp+="<div class=\"mt-0 mb-1\"></div>";//空name
+                     }else{
+                        html_yp+="<div class=\"mt-0 mb-1\"></div>";//空name
+                     }//else if has user
+
+                     var reviewstar="ypreviewstar_"+j;
+                     html_yp+="<div class='row'>";
+                     html_yp+="<div>&nbsp;&nbsp;&nbsp;</div>";
+                     html_yp+="<div id='"+reviewstar+"' style='overflow: hidden;width:65px;'><div style='font-family:Arial;font-size:13px;color:orange;'>&#9733&#9733&#9733&#9733&#9733</div></div>";
+                     html_yp += "<div>&nbsp;&nbsp;</div>";
+                     html_yp+="<div id='rvtime' style='font-size:13px;'>";
+                     if(arr[j].hasOwnProperty("time_created")){
+                      html_yp+=arr[j].time_created;
+                     }//if has rvtime
+                     html_yp+="</div>";//rvtime
+                     html_yp+="</div>";//row
+
+                     if(arr[j].hasOwnProperty("text")){
+                      if(arr[j].text!=''){
+                        html_yp += "<div>"+arr[j].text+"</div>";
+                         }else{
+                            "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+                         }//else if text !=''                     
+                      }else{//else has text pro
+                      html_yp += "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+                      } 
+                      html_yp+="</div>";//media-body
+                      html_yp+="</li>";
+                    }//for j
+                    html_yp+="</ul>";
+                    $("#yelpreview").html(html_yp); 
+                    for(var i=0;i<yprvlength;i++){
+                   var xxwidth=$("#ypreviewstar_"+i).width();
+                   var rvrating= arr[i].hasOwnProperty('rating') ? arr[i].rating : 0;
+                   $("#ypreviewstar_"+i).width(rvrating/5*xxwidth);
+                   }//for
+                  }//else if nomatch                
+              
+         }else{//else ypreview==''
+          html_yp ='';
+          html_yp +="<div class='container'>";
+          html_yp +="<div class=\"alert alert-warning\" role=\"alert\">";
+          html_yp +="No records.";
+          html_yp +="</div>";
+          html_yp +="</div>";//container
+          $("#yelpreview").html(html_yp);
+          }//elseif ypreviewlist
+  }//function printhiyp
+
+
+  function printloyp(){
+    document.getElementById('yelpreview').innerHTML='';
+    document.getElementById('dropdownmenulist').innerHTML='Lowest Rating';
+      html_yp=''; 
+    if(ypreviewlist!=""){
+      if(ypreviewlist[0].hasOwnProperty("nomatch")){
+      if(ypreviewlist[0].nomatch=='nomatch'){
+      html_yp +="<div class='container'>";
+      html_yp +="<div class=\"alert alert-warning\" role=\"alert\">";
+      html_yp +="No records.";
+      html_yp +="</div>";
+      html_yp +="</div>";//container
+      $("#yelpreview").html(html_yp); 
+      }else{//nomatch
+      html_err='';
+      html_err +="<div class='container'>";
+      html_err +="<div class=\"alert alert-danger\" role=\"alert\">";
+      html_err +="Fail to get search results.";
+      html_err +="</div>";
+      html_err +="</div>";//container
+      $("#yelpreview").html(html_err); 
+      }//else nomatch=
+      }else{
+      var arr = ypreviewlist.concat();
+      function compare(property){
+        return function(a,b){
+        var value1 = a[property];
+        var value2 = b[property];
+        return value1 - value2;
+       }//function ab
+     }//function compare
+    arr.sort(compare('rating'));
+                  
+                    html_yp+="<ul class=\"list-unstyled\">";
+                    var yprvlength=arr.length;
+                    for (var j = 0; j<yprvlength; j++){
+                    html_yp+="<li class=\"media mt-2\" style='border: solid 1px #BDBDBD'>";
+                    if(arr[j].hasOwnProperty("user")){
+                        if(arr[j].user.hasOwnProperty("image_url")){
+                          var author_photo=arr[j].user.image_url;
+                          if(arr[j].hasOwnProperty("url")){
+                            html_yp+="<a href='"+arr[j].url+"' target=\"_blank\"><img class=\"mr-3 rounded-circle\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\"></a>";
+                          }else{
+                            html_yp+="<img class=\"mr-3 rounded-circle\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\">";
+                          }//if has url
+                        }//if has img-url
+                    html_yp+="<div class=\"media-body\">";
+                    if(arr[j].user.hasOwnProperty("name")){
+                        if(arr[j].hasOwnProperty("url")){
+                            html_yp+="<div><a href='"+arr[j].url+"' target=\"_blank\"><b class=\"mt-0 mb-1\"><span style='font-color:blue'>"+arr[j].user.name+"</span></a></b></div>";
+                         }else{
+                            html_yp+="<div><span class=\"mt-0 mb-1\" style='font-weight:bold;color:#0080FF;'>"+arr[j].user.name+"</span></div>";
+                         }//else if has url
+                        }//if has user.name
+                        html_yp+="<div class=\"mt-0 mb-1\"></div>";//空name
+                     }else{
+                        html_yp+="<div class=\"mt-0 mb-1\"></div>";//空name
+                     }//else if has user
+
+                     var reviewstar="ypreviewstar_"+j;
+                     html_yp+="<div class='row'>";
+                     html_yp+="<div>&nbsp;&nbsp;&nbsp;</div>";
+                     html_yp+="<div id='"+reviewstar+"' style='overflow: hidden;width:65px;'><div style='font-family:Arial;font-size:13px;color:orange;'>&#9733&#9733&#9733&#9733&#9733</div></div>";
+                     html_yp += "<div>&nbsp;&nbsp;</div>";
+                     html_yp+="<div id='rvtime' style='font-size:13px;'>";
+                     if(arr[j].hasOwnProperty("time_created")){
+                      html_yp+=arr[j].time_created;
+                     }//if has rvtime
+                     html_yp+="</div>";//rvtime
+                     html_yp+="</div>";//row
+
+                     if(arr[j].hasOwnProperty("text")){
+                      if(arr[j].text!=''){
+                        html_yp += "<div>"+arr[j].text+"</div>";
+                         }else{
+                            "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+                         }//else if text !=''                     
+                      }else{//else has text pro
+                      html_yp += "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+                      } 
+                      html_yp+="</div>";//media-body
+                      html_yp+="</li>";
+                    }//for j
+                    html_yp+="</ul>";
+                    $("#yelpreview").html(html_yp);
+                    for(var i=0;i<yprvlength;i++){
+                   var xxwidth=$("#ypreviewstar_"+i).width();
+                   var rvrating= arr[i].hasOwnProperty('rating') ? arr[i].rating : 0;
+                   $("#ypreviewstar_"+i).width(rvrating/5*xxwidth);
+                   }//for
+                  }//else if nomatch                 
+             
+        }else{//else ypreview==''
+          html_yp ='';
+          html_yp +="<div class='container'>";
+          html_yp +="<div class=\"alert alert-warning\" role=\"alert\">";
+          html_yp +="No records.";
+          html_yp +="</div>";
+          html_yp +="</div>";//container
+          $("#yelpreview").html(html_yp); 
+          }//elseif ypreviewlist
+  }//function printloyp
+
+  function printmryp(){
+  document.getElementById('yelpreview').innerHTML='';
+    document.getElementById('dropdownmenulist').innerHTML='Most Recent';
+    html_yp=''; 
+    if(ypreviewlist!=""){
+      if(ypreviewlist[0].hasOwnProperty("nomatch")){
+      if(ypreviewlist[0].nomatch=='nomatch'){
+      html_yp +="<div class='container'>";
+      html_yp +="<div class=\"alert alert-warning\" role=\"alert\">";
+      html_yp +="No records.";
+      html_yp +="</div>";
+      html_yp +="</div>";//container
+      $("#yelpreview").html(html_yp); 
+      }else{//nomatch
+      html_err='';
+      html_err +="<div class='container'>";
+      html_err +="<div class=\"alert alert-danger\" role=\"alert\">";
+      html_err +="Fail to get search results.";
+      html_err +="</div>";
+      html_err +="</div>";//container
+      $("#yelpreview").html(html_err); 
+      }//else nomatch=
+      }else{
+      var arr = ypreviewlist.concat();
+      for(var i=0;i<arr.length;i++){
+      arr[i].time_created=Date.parse(arr[i].time_created);
+      }//for i
+      function compare(property){
+        return function(a,b){
+        var value1 = a[property];
+        var value2 = b[property];
+        return value2 - value1;
+       }//function ab
+     }//function compare
+    arr.sort(compare('time_created'));///////////
+    for(var i=0;i<arr.length;i++){
+     arr[i].time_created=moment(arr[i].time_created).format('YYYY-MM-DD HH:mm:ss');
+      }//for i
+
+                    html_yp+="<ul class=\"list-unstyled\">";
+                    var yprvlength=arr.length;
+                    for (var j = 0; j<yprvlength; j++){
+                    html_yp+="<li class=\"media mt-2\" style='border: solid 1px #BDBDBD'>";
+                    if(arr[j].hasOwnProperty("user")){
+                        if(arr[j].user.hasOwnProperty("image_url")){
+                          var author_photo=arr[j].user.image_url;
+                          if(arr[j].hasOwnProperty("url")){
+                            html_yp+="<a href='"+arr[j].url+"' target=\"_blank\"><img class=\"mr-3 rounded-circle\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\"></a>";
+                          }else{
+                            html_yp+="<img class=\"mr-3 rounded-circle\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\">";
+                          }//if has url
+                        }//if has img-url
+                    html_yp+="<div class=\"media-body\">";
+                    if(arr[j].user.hasOwnProperty("name")){
+                        if(arr[j].hasOwnProperty("url")){
+                            html_yp+="<div><a href='"+arr[j].url+"' target=\"_blank\"><b class=\"mt-0 mb-1\"><span style='font-color:blue'>"+arr[j].user.name+"</span></a></b></div>";
+                         }else{
+                            html_yp+="<div><span class=\"mt-0 mb-1\" style='font-weight:bold;color:#0080FF;'>"+arr[j].user.name+"</span></div>";
+                         }//else if has url
+                        }//if has user.name
+                        html_yp+="<div class=\"mt-0 mb-1\"></div>";//空name
+                     }else{
+                        html_yp+="<div class=\"mt-0 mb-1\"></div>";//空name
+                     }//else if has user
+
+                     var reviewstar="ypreviewstar_"+j;
+                     html_yp+="<div class='row'>";
+                     html_yp+="<div>&nbsp;&nbsp;&nbsp;</div>";
+                     html_yp+="<div id='"+reviewstar+"' style='overflow: hidden;width:65px;'><div style='font-family:Arial;font-size:13px;color:orange;'>&#9733&#9733&#9733&#9733&#9733</div></div>";
+                     html_yp += "<div>&nbsp;&nbsp;</div>";
+                     html_yp+="<div id='rvtime' style='font-size:13px;'>";
+                     if(arr[j].hasOwnProperty("time_created")){
+                      html_yp+=arr[j].time_created;
+                     }//if has rvtime
+                     
+                     html_yp+="</div>";//rvtime
+                     html_yp+="</div>";//row
+
+                     if(arr[j].hasOwnProperty("text")){
+                      if(arr[j].text!=''){
+                        html_yp += "<div>"+arr[j].text+"</div>";
+                         }else{
+                            "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+                         }//else if text !=''                     
+                      }else{//else has text pro
+                      html_yp += "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+                      } 
+                      html_yp+="</div>";//media-body
+                      html_yp+="</li>";
+                    }//for j
+                    html_yp+="</ul>";
+                    $("#yelpreview").html(html_yp); 
+                    for(var i=0;i<yprvlength;i++){
+                   var xxwidth=$("#ypreviewstar_"+i).width();
+                   var rvrating= arr[i].hasOwnProperty('rating') ? arr[i].rating : 0;
+                   $("#ypreviewstar_"+i).width(rvrating/5*xxwidth);
+                   }//for
+                  }//else if nomatch
+
+     }else{//else ypreview==''
+      html_yp='';
+      html_yp +="<div class='container'>";
+      html_yp +="<div class=\"alert alert-warning\" role=\"alert\">";
+      html_yp +="No records.";
+      html_yp +="</div>";
+      html_yp +="</div>";//container
+      $("#yelpreview").html(html_yp); 
+      }//else if ypreviewlist    
+
+  }//function
+
+  function printlryp(){
+    document.getElementById('yelpreview').innerHTML='';
+    document.getElementById('dropdownmenulist').innerHTML='Least Recent';
+    html_yp=''; 
+    if(ypreviewlist!=""){
+      if(ypreviewlist[0].hasOwnProperty("nomatch")){
+      if(ypreviewlist[0].nomatch=='nomatch'){
+      html_yp +="<div class='container'>";
+      html_yp +="<div class=\"alert alert-warning\" role=\"alert\">";
+      html_yp +="No records.";
+      html_yp +="</div>";
+      html_yp +="</div>";//container
+      $("#yelpreview").html(html_yp); 
+      }else{//nomatch
+      html_err='';
+      html_err +="<div class='container'>";
+      html_err +="<div class=\"alert alert-danger\" role=\"alert\">";
+      html_err +="Fail to get search results.";
+      html_err +="</div>";
+      html_err +="</div>";//container
+      $("#yelpreview").html(html_err); 
+      }//else nomatch=
+      }else{
+      var arr = ypreviewlist.concat();
+      for(var i=0;i<arr.length;i++){
+      arr[i].time_created=Date.parse(arr[i].time_created);
+      }//for i
+      function compare(property){
+        return function(a,b){
+        var value1 = a[property];
+        var value2 = b[property];
+        return value1 - value2;
+       }//function ab
+     }//function compare
+    arr.sort(compare('time_created'));///////////
+    for(var i=0;i<arr.length;i++){
+     arr[i].time_created=moment(arr[i].time_created).format('YYYY-MM-DD HH:mm:ss');
+      }//for i
+
+                    html_yp+="<ul class=\"list-unstyled\">";
+                    var yprvlength=arr.length;
+                    for (var j = 0; j<yprvlength; j++){
+                    html_yp+="<li class=\"media mt-2\" style='border: solid 1px #BDBDBD'>";
+                    if(arr[j].hasOwnProperty("user")){
+                        if(arr[j].user.hasOwnProperty("image_url")){
+                          var author_photo=arr[j].user.image_url;
+                          if(arr[j].hasOwnProperty("url")){
+                            html_yp+="<a href='"+arr[j].url+"' target=\"_blank\"><img class=\"mr-3 rounded-circle\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\"></a>";
+                          }else{
+                            html_yp+="<img class=\"mr-3 rounded-circle\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\">";
+                          }//if has url
+                        }//if has img-url
+                    html_yp+="<div class=\"media-body\">";
+                    if(arr[j].user.hasOwnProperty("name")){
+                        if(arr[j].hasOwnProperty("url")){
+                            html_yp+="<div><a href='"+arr[j].url+"' target=\"_blank\"><b class=\"mt-0 mb-1\"><span style='font-color:blue'>"+arr[j].user.name+"</span></a></b></div>";
+                         }else{
+                            html_yp+="<div><span class=\"mt-0 mb-1\" style='font-weight:bold;color:#0080FF;'>"+arr[j].user.name+"</span></div>";
+                         }//else if has url
+                        }//if has user.name
+                        html_yp+="<div class=\"mt-0 mb-1\"></div>";//空name
+                     }else{
+                        html_yp+="<div class=\"mt-0 mb-1\"></div>";//空name
+                     }//else if has user
+
+                     var reviewstar="ypreviewstar_"+j;
+                     html_yp+="<div class='row'>";
+                     html_yp+="<div>&nbsp;&nbsp;&nbsp;</div>";
+                     html_yp+="<div id='"+reviewstar+"' style='overflow: hidden;width:65px;'><div style='font-family:Arial;font-size:13px;color:orange;'>&#9733&#9733&#9733&#9733&#9733</div></div>";
+                     html_yp += "<div>&nbsp;&nbsp;</div>";
+                     html_yp+="<div id='rvtime' style='font-size:13px;'>";
+                     if(arr[j].hasOwnProperty("time_created")){
+                      html_yp+=arr[j].time_created;
+                     }//if has rvtime
+                     
+                     html_yp+="</div>";//rvtime
+                     html_yp+="</div>";//row
+
+                     if(arr[j].hasOwnProperty("text")){
+                      if(arr[j].text!=''){
+                        html_yp += "<div>"+arr[j].text+"</div>";
+                         }else{
+                            "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+                         }//else if text !=''                     
+                      }else{//else has text pro
+                      html_yp += "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+                      } 
+                      html_yp+="</div>";//media-body
+                      html_yp+="</li>";
+                    }//for j
+                    html_yp+="</ul>";
+                    $("#yelpreview").html(html_yp);
+                    for(var i=0;i<yprvlength;i++){
+                    var xxwidth=$("#ypreviewstar_"+i).width();
+                    var rvrating= arr[i].hasOwnProperty('rating') ? arr[i].rating : 0;
+                    $("#ypreviewstar_"+i).width(rvrating/5*xxwidth);
+                   }//for 
+                  }//else if nomatch
+      
+      }else{//else ypreview==''
+      html_yp='';
+      html_yp +="<div class='container'>";
+      html_yp +="<div class=\"alert alert-warning\" role=\"alert\">";
+      html_yp +="No records.";
+      html_yp +="</div>";
+      html_yp +="</div>";//container
+      $("#yelpreview").html(html_yp); 
+      }//else if ypreviewlist    
+  }//function printlryp
+
+
+function printdforder(){
+ document.getElementById('googlereview').innerHTML='';
+ document.getElementById('dropdownmenulist').innerHTML='Default Order';
+    
+    if(reviewlist!=""){
+        html_dforder=''; 
+       html_dforder+="<ul class=\"list-unstyled\">"; 
+       rvlength=Math.min(5,reviewlist.length);
+      for (var j = 0; j<rvlength; j++){
+         html_dforder+="<li class=\"media mt-2\" style='border: solid 1px #BDBDBD'>";
+            if(reviewlist[j].hasOwnProperty("profile_photo_url"))
+            { var author_photo=reviewlist[j].profile_photo_url;
+              if(reviewlist[j].hasOwnProperty("author_url")){
+              html_dforder+="<a href='"+reviewlist[j].author_url+"' target=\"_blank\"><img class=\"mr-3\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\"></a>";
+             }else{
+              html_dforder+="<img class=\"mr-3\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\">";
+              }//else if has auntor_url
+            }else{
+              html_dforder+="<img class=\"mr-3\"  height=40px width=40px >";
+            }//else has profile_photo/////////////////
+          html_dforder+="<div class=\"media-body\">";
+          if(reviewlist[j].hasOwnProperty("author_name")){
+            if(reviewlist[j].hasOwnProperty("author_url")){
+            html_dforder+="<div><a href='"+reviewlist[j].author_url+"' target=\"_blank\"><b class=\"mt-0 mb-1\"><span style='font-color:blue'>"+reviewlist[j].author_name+"</span></a></b></div>";
+              }else{
+              html_dforder+="<div><span class=\"mt-0 mb-1\" style='font-weight:bold;color:#0080FF;'>"+reviewlist[j].author_name+ "</span></div>";      
+            }//if url
+          }else{//if name
+           html_dforder+="<div class=\"mt-0 mb-1\"></div>";//空name
+          }
+
+
+          var reviewstar="reviewstar_"+j;
+          html_dforder+="<div class='row'>";
+          html_dforder += "<div>&nbsp;&nbsp;&nbsp;</div>";
+          html_dforder+="<div id='"+reviewstar+"' style='overflow: hidden;width:65px;'><div style='font-family:Arial;font-size:13px;color:orange;'>&#9733&#9733&#9733&#9733&#9733</div></div>";
+          html_dforder += "<div>&nbsp;&nbsp;</div>";
+          html_dforder+="<div id='rvtime' style='font-size:13px;'>";
+          if(reviewlist[j].hasOwnProperty("time")){
+            var aurvtime=reviewlist[j].time *1000;
+            var fmtime=moment(aurvtime).format('YYYY-MM-DD HH:mm:ss');
+          }
+          html_dforder+=fmtime;
+          html_dforder+="</div>";//rvtime
+          html_dforder+="</div>";//row
+
+          if(reviewlist[j].text!=""){
+          html_dforder += "<div>"+reviewlist[j].text+"</div>";
+          }else{
+          html_dforder += "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+          } 
+          html_dforder+="</div>";//media-body
+          html_dforder+="</li>";
+      }//for
+     html_dforder+="</ul>";
+    }else{
+        html_dforder='';
+        html_dforder +="<div class='container'>";
+        html_dforder +="<div class=\"alert alert-warning\" role=\"alert\">";
+        html_dforder +="No records.";
+        html_dforder +="</div>";
+        html_dforder +="</div>";//container
+    }//else
+
+  $("#googlereview").html(html_dforder);
+  
+  if(reviewlist!=""){
+     for(var i=0;i<rvlength;i++){
+       var xxwidth=$("#reviewstar_"+i).width();
+       var rvrating= reviewlist[i].hasOwnProperty('rating') ? reviewlist[i].rating : 0;
+       $("#reviewstar_"+i).width(rvrating/5*xxwidth);
+      }//for
+    }//ifreviewlist
+ }//function printdforder
+
+function printhighorder(){
+ document.getElementById('googlereview').innerHTML='';
+    document.getElementById('dropdownmenulist').innerHTML='Highest Rating';
+
+    if(reviewlist!=""){
+      var arr = reviewlist.concat();
+      function compare(property){
+        return function(a,b){
+        var value1 = a[property];
+        var value2 = b[property];
+        return value2 - value1;
+       }//function ab
+     }//function compare
+    arr.sort(compare('rating'));
+
+    html_hiorder='';
+    html_hiorder+="<ul class=\"list-unstyled\">";    
+
+       rvlength=Math.min(5,arr.length);
+      for (var j = 0; j<rvlength; j++){
+         html_hiorder+="<li class=\"media mt-2\" style='border: solid 1px #BDBDBD'>";
+         if(arr[j].hasOwnProperty("profile_photo_url"))
+            { var author_photo=arr[j].profile_photo_url;
+              if(arr[j].hasOwnProperty("author_url")){
+              html_hiorder+="<a href='"+arr[j].author_url+"' target=\"_blank\"><img class=\"mr-3\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\"></a>";
+             }else{
+              html_hiorder+="<img class=\"mr-3\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\">";
+              }//else if has auntor_url
+            }else{
+              html_hiorder+="<img class=\"mr-3\"  height=40px width=40px >";
+            }//else has profile_photo/////////////////
+          html_hiorder+="<div class=\"media-body\">";
+          if(arr[j].hasOwnProperty("author_name")){
+            if(arr[j].hasOwnProperty("author_url")){
+            html_hiorder+="<div><a href='"+arr[j].author_url+"' target=\"_blank\"><b class=\"mt-0 mb-1\"><span style='font-color:blue'>"+arr[j].author_name+"</span></a></b></div>";
+              }else{
+              html_hiorder+="<div><span class=\"mt-0 mb-1\" style='font-weight:bold;color:#0080FF;'>"+arr[j].author_name+ "</span></div>"; 
+            }//if url
+          }else{//if name
+          html_hiorder+="<div class=\"mt-0 mb-1\"></div>";//空name
+          }
+
+
+          var reviewstar="reviewstar_"+j;
+          html_hiorder+="<div class='row'>";
+          html_hiorder += "<div>&nbsp;&nbsp;&nbsp;</div>";
+          html_hiorder+="<div id='"+reviewstar+"' style='overflow: hidden;width:65px;'><div style='font-family:Arial;font-size:13px;color:orange;'>&#9733&#9733&#9733&#9733&#9733</div></div>";
+          html_hiorder += "<div>&nbsp;&nbsp;</div>";
+          html_hiorder+="<div id='rvtime' style='font-size:13px;'>";
+          if(arr[j].hasOwnProperty("time")){
+            var aurvtime=arr[j].time *1000;
+            var fmtime=moment(aurvtime).format('YYYY-MM-DD HH:mm:ss');
+          }
+          html_hiorder+=fmtime;
+          html_hiorder+="</div>";//rvtime
+          html_hiorder+="</div>";//row
+
+          if(arr[j].text!=""){
+          html_hiorder += "<div>"+arr[j].text+"</div>";
+          }else{
+          html_hiorder += "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+          } 
+          html_hiorder+="</div>";//media-body
+          html_hiorder+="</li>";
+      }//for
+     html_hiorder+="</ul>";
+
+   
+  $("#googlereview").html(html_hiorder);/////////////////////////////////////////////////////////
+     for(var i=0;i<rvlength;i++){
+       var xxwidth=$("#reviewstar_"+i).width();
+       var rvrating= arr[i].hasOwnProperty('rating') ? arr[i].rating : 0;
+       $("#reviewstar_"+i).width(rvrating/5*xxwidth);
+      }//for
+  }else{
+        html_hiorder='';
+        html_hiorder +="<div class='container'>";
+        html_hiorder +="<div class=\"alert alert-warning\" role=\"alert\">";
+        html_hiorder +="No records.";
+        html_hiorder +="</div>";
+        html_hiorder +="</div>";//container
+        $("#googlereview").html(html_hiorder);
+    }//else if list
+}//function
+
+function printloworder(){
+ document.getElementById('googlereview').innerHTML='';
+    document.getElementById('dropdownmenulist').innerHTML='Lowest Rating';
+
+    if(reviewlist!=""){
+      var arr = reviewlist.concat();
+      function compare(property){
+        return function(a,b){
+        var value1 = a[property];
+        var value2 = b[property];
+        return value1 - value2;
+       }//function ab
+     }//function compare
+    arr.sort(compare('rating'));
+    html_loworder='';
+    html_loworder+="<ul class=\"list-unstyled\">";    
+   
+       rvlength=Math.min(5,arr.length);
+      for (var j = 0; j<rvlength; j++){
+         html_loworder+="<li class=\"media mt-2\" style='border: solid 1px #BDBDBD'>";
+         if(arr[j].hasOwnProperty("profile_photo_url"))
+            { var author_photo=arr[j].profile_photo_url;
+              if(arr[j].hasOwnProperty("author_url")){
+              html_loworder+="<a href='"+arr[j].author_url+"' target=\"_blank\"><img class=\"mr-3\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\"></a>";
+             }else{
+              html_loworder+="<img class=\"mr-3\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\">";
+              }//else if has auntor_url
+            }else{
+              html_loworder+="<img class=\"mr-3\"  height=40px width=40px >";
+            }//else has profile_photo/////////////////
+          html_loworder+="<div class=\"media-body\">";
+          if(arr[j].hasOwnProperty("author_name")){
+            if(arr[j].hasOwnProperty("author_url")){
+            html_loworder+="<div><a href='"+arr[j].author_url+"' target=\"_blank\"><b class=\"mt-0 mb-1\"><span style='font-color:blue'>"+arr[j].author_name+"</span></a></b></div>";
+              }else{
+              html_loworder+="<div><span class=\"mt-0 mb-1\" style='font-weight:bold;color:#0080FF;'>"+arr[j].author_name+"</span></div>";  
+            }//if url
+          }else{//if name
+          html_loworder+="<div class=\"mt-0 mb-1\"></div>";//空name
+          }
+
+
+          var reviewstar="reviewstar_"+j;
+          html_loworder+="<div class='row'>";
+          html_loworder += "<div>&nbsp;&nbsp;&nbsp;</div>";
+          html_loworder+="<div id='"+reviewstar+"' style='overflow: hidden;width:65px;'><div style='font-family:Arial;font-size:13px;color:orange;'>&#9733&#9733&#9733&#9733&#9733</div></div>";
+          html_loworder += "<div>&nbsp;&nbsp;</div>";
+          html_loworder+="<div id='rvtime' style='font-size:13px;'>";
+          if(arr[j].hasOwnProperty("time")){
+            var aurvtime=arr[j].time *1000;
+            var fmtime=moment(aurvtime).format('YYYY-MM-DD HH:mm:ss');
+          }
+          html_loworder+=fmtime;
+          html_loworder+="</div>";//rvtime
+          html_loworder+="</div>";//row
+
+          if(arr[j].text!=""){
+          html_loworder += "<div>"+arr[j].text+"</div>";
+          }else{
+          html_loworder += "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+          } 
+          html_loworder+="</div>";//media-body
+          html_loworder+="</li>";
+      }//for
+     html_loworder+="</ul>";
+
+   
+  $("#googlereview").html(html_loworder);////////////////////////////////////////////////////////
+     for(var i=0;i<rvlength;i++){
+       var xxwidth=$("#reviewstar_"+i).width();
+       var rvrating= arr[i].hasOwnProperty('rating') ? arr[i].rating : 0;
+       $("#reviewstar_"+i).width(rvrating/5*xxwidth);
+      }//for
+    }else{
+        html_loworder='';
+        html_loworder+="<div class='container'>";
+        html_loworder+="<div class=\"alert alert-warning\" role=\"alert\">";
+        html_loworder +="No records.";
+        html_loworder +="</div>";
+        html_loworder +="</div>";//container
+        $("#googlereview").html(html_loworder);
+    }//else iflist
+  
+}//function
+
+function printmrorder(){
+ document.getElementById('googlereview').innerHTML='';
+    document.getElementById('dropdownmenulist').innerHTML='Most Recent';
+
+    if(reviewlist!=""){
+      var arr = reviewlist.concat();
+      function compare(property){
+        return function(a,b){
+        var value1 = a[property];
+        var value2 = b[property];
+        return value2 - value1;
+       }//function ab
+     }//function compare
+    arr.sort(compare('time'));
+
+    html_mr='';
+    html_mr+="<ul class=\"list-unstyled\">";    
+
+       rvlength=Math.min(5,arr.length);
+      for (var j = 0; j<rvlength; j++){
+         html_mr+="<li class=\"media mt-2\" style='border: solid 1px #BDBDBD'>";
+         if(arr[j].hasOwnProperty("profile_photo_url"))
+            { var author_photo=arr[j].profile_photo_url;
+              if(arr[j].hasOwnProperty("author_url")){
+              html_mr+="<a href='"+arr[j].author_url+"' target=\"_blank\"><img class=\"mr-3\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\"></a>";
+             }else{
+              html_mr+="<img class=\"mr-3\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\">";
+              }//else if has auntor_url
+            }else{
+              html_mr+="<img class=\"mr-3\"  height=40px width=40px >";
+            }//else has profile_photo/////////////////
+          html_mr+="<div class=\"media-body\">";
+          if(arr[j].hasOwnProperty("author_name")){
+            if(arr[j].hasOwnProperty("author_url")){
+            html_mr+="<div><a href='"+arr[j].author_url+"' target=\"_blank\"><b class=\"mt-0 mb-1\"><span style='font-color:blue'>"+arr[j].author_name+"</span></a></b></div>";
+              }else{
+              html_mr+="<div><span class=\"mt-0 mb-1\" style='font-weight:bold;color:#0080FF;'>"+arr[j].author_name+"</span></div>"; 
+            }//if url
+          }else{//if name
+          html_mr+="<div class=\"mt-0 mb-1\"></div>";//空name
+          }
+
+
+          var reviewstar="reviewstar_"+j;
+          html_mr+="<div class='row'>";
+          html_mr += "<div>&nbsp;&nbsp;&nbsp;</div>";
+          html_mr+="<div id='"+reviewstar+"' style='overflow: hidden;width:65px;'><div style='font-family:Arial;font-size:13px;color:orange;'>&#9733&#9733&#9733&#9733&#9733</div></div>";
+          html_mr += "<div>&nbsp;&nbsp;</div>";
+          html_mr+="<div id='rvtime' style='font-size:13px;'>";
+          if(arr[j].hasOwnProperty("time")){
+            var aurvtime=arr[j].time *1000;
+            var fmtime=moment(aurvtime).format('YYYY-MM-DD HH:mm:ss');
+          }
+          html_mr+=fmtime;
+          html_mr+="</div>";//rvtime
+          html_mr+="</div>";//row
+
+          if(arr[j].text!=""){
+          html_mr += "<div>"+arr[j].text+"</div>";
+          }else{
+          html_mr += "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+          } 
+          html_mr+="</div>";//media-body
+          html_mr+="</li>";
+      }//for
+     html_mr+="</ul>";
+  
+  $("#googlereview").html(html_mr);////////////////////////////////////////////////////////
+
+     for(var i=0;i<rvlength;i++){
+       var xxwidth=$("#reviewstar_"+i).width();
+       var rvrating= arr[i].hasOwnProperty('rating') ? arr[i].rating : 0;
+       $("#reviewstar_"+i).width(rvrating/5*xxwidth);
+      }//for
+
+    }else{
+        html_mr='';
+        html_mr+="<div class='container'>";
+        html_mr+="<div class=\"alert alert-warning\" role=\"alert\">";
+        html_mr +="No records.";
+        html_mr +="</div>";
+        html_mr +="</div>";//container
+        $("#googlereview").html(html_mr);
+    }//else if list
+}//function
+
+
+function printlrorder(){
+document.getElementById('googlereview').innerHTML='';
+    document.getElementById('dropdownmenulist').innerHTML='Least Recent';
+
+    if(reviewlist!=""){
+      var arr = reviewlist.concat();
+      function compare(property){
+        return function(a,b){
+        var value1 = a[property];
+        var value2 = b[property];
+        return value1 - value2;
+       }//function ab
+     }//function compare
+    arr.sort(compare('time'));
+
+    html_lr='';
+    html_lr+="<ul class=\"list-unstyled\">";    
+
+       rvlength=Math.min(5,arr.length);
+      for (var j = 0; j<rvlength; j++){
+         html_lr+="<li class=\"media mt-2\" style='border: solid 1px #BDBDBD'>";
+         if(arr[j].hasOwnProperty("profile_photo_url"))
+            { var author_photo=arr[j].profile_photo_url;
+              if(arr[j].hasOwnProperty("author_url")){
+              html_lr+="<a href='"+arr[j].author_url+"' target=\"_blank\"><img class=\"mr-3\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\"></a>";
+             }else{
+              html_lr+="<img class=\"mr-3\" src=\""+author_photo+"\" height=40px width=40px  alt=\"Generic placeholder image\">";
+              }//else if has auntor_url
+            }else{
+              html_lr+="<img class=\"mr-3\"  height=40px width=40px >";
+            }//else has profile_photo/////////////////
+          html_lr+="<div class=\"media-body\">";
+          if(arr[j].hasOwnProperty("author_name")){
+            if(arr[j].hasOwnProperty("author_url")){
+            html_lr+="<div><a href='"+arr[j].author_url+"' target=\"_blank\"><b class=\"mt-0 mb-1\"><span style='font-color:blue'>"+arr[j].author_name+"</span></a></b></div>";
+              }else{
+              html_lr+="<div><span class=\"mt-0 mb-1\" style='font-weight:bold;color:#0080FF;'>"+arr[j].author_name+"</span></div>"; 
+            }//if url
+          }else{//if name
+          html_lr+="<div class=\"mt-0 mb-1\"></div>";//空name
+          }
+
+
+          var reviewstar="reviewstar_"+j;
+          html_lr+="<div class='row'>";
+          html_lr += "<div>&nbsp;&nbsp;&nbsp;</div>";
+          html_lr+="<div id='"+reviewstar+"' style='overflow: hidden;width:65px;'><div style='font-family:Arial;font-size:13px;color:orange;'>&#9733&#9733&#9733&#9733&#9733</div></div>";
+          html_lr += "<div>&nbsp;&nbsp;</div>";
+          html_lr+="<div id='rvtime' style='font-size:13px;'>";
+          if(arr[j].hasOwnProperty("time")){
+            var aurvtime=arr[j].time *1000;
+            var fmtime=moment(aurvtime).format('YYYY-MM-DD HH:mm:ss');
+          }
+          html_lr+=fmtime;
+          html_lr+="</div>";//rvtime
+          html_lr+="</div>";//row
+
+          if(arr[j].text!=""){
+          html_lr += "<div>"+arr[j].text+"</div>";
+          }else{
+          html_lr += "<div>&nbsp;&nbsp;&nbsp;&nbsp;</div>";
+          } 
+          html_lr+="</div>";//media-body
+          html_lr+="</li>";
+      }//for
+     html_lr+="</ul>";
+   
+  $("#googlereview").html(html_lr);////////////////////////////////////////////////////////
+     for(var i=0;i<rvlength;i++){
+       var xxwidth=$("#reviewstar_"+i).width();
+       var rvrating= arr[i].hasOwnProperty('rating') ? arr[i].rating : 0;
+       $("#reviewstar_"+i).width(rvrating/5*xxwidth);
+      }//for
+    }else{
+        html_lr='';
+        html_lr+="<div class='container'>";
+        html_lr+="<div class=\"alert alert-warning\" role=\"alert\">";
+        html_lr +="No records.";
+        html_lr +="</div>";
+        html_lr +="</div>";//container
+        $("#googlereview").html(html_lr);
+    }//else iflist
+}//functionlrorder
+
+</script>
+
+
+<script type="text/javascript">
+    var myapp = angular.module("App", ["ngAnimate"]);
+        myapp.controller("MyCtrl", function ($scope) 
+        {
+            $scope.valueslide = false;
+            $scope.valuefade = false;
+        });
+
+</script>
+
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

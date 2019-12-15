@@ -1,0 +1,19 @@
+{
+  "name": "571hw8",
+  "version": "1.0.0",
+  "description": "Travel and Entertainment Search",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "author": "Tianyi Zhu",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.2",
+    "cors": "^2.8.4",
+    "http": "0.0.0",
+    "sync-request": "^6.0.0",
+    "url": "^0.11.0",
+    "yelp-fusion": "3.0.0"
+  }
+}
